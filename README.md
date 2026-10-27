@@ -240,7 +240,16 @@ La infraestructura cuenta con un repositorio y aplicacion de escritorio nativa d
 - **Lanzador Rapido:** Doble clic sobre [run_console.bat](run_console.bat) o ejecucion via `python desktop_console\app.py`.
 - **Modulo 1 (Servicios y Salud):** Monitorizacion y telemetria en vivo de FCC Server (8082), Backend FastAPI (8000), SQLite WAL, Microsoft Foundry Sdog Farm y motor de Sandbox.
 - **Modulo 2 (Proyectos y Kanban):** Visualizacion interactiva del ciclo de vida de tareas, creacion de nuevas historias tecnicas, expediente arquitectonico y barrera de aprobacion humana (`ApprovalManager`).
-- **Modulo 3 (Gestor de Incidencias):** Seguimiento y resolucion de anomalías operacionales, alertas de seguridad de `SecretScanner` y bloqueos por politicas AI-GRC.
-- **Modulo 4 (Auditoria y Eventos):** Flujo inmutable de transiciones y generador exportador de informes de cumplimiento formal en Markdown/JSON.
+- **Modulo 3 (Code Sessions y Agentes):** Acceso directo a FCC Code Sessions Web (`:8082/admin/code`), lanzador de Claude Code CLI (`launch_fcc_client.bat`), e inferencia interactiva multirrol con modelos gratuitos (`kilo/kilo-auto/free`, `kilo/openrouter/free`, `open_router/openrouter/free`) y comerciales con registro forense.
+- **Modulo 4 (Gestor de Incidencias):** Seguimiento y resolucion de anomalías operacionales, alertas de seguridad de `SecretScanner` y bloqueos por politicas AI-GRC.
+- **Modulo 5 (Auditoria y Eventos):** Flujo inmutable de transiciones y generador exportador de informes de cumplimiento formal en Markdown/JSON.
 - **Manual de Operacion:** [docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md](docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md).
 - **Guia de Validacion:** Consulte [docs/GUIA_VALIDACION.md](https://github.com/SADOCKDOG/Console-AI-Dev-Infrastructure/blob/main/docs/GUIA_VALIDACION.md) para el protocolo formal de pruebas y certificacion.
+
+### Capturas de Pantalla de la Consola
+
+#### Monitorizacion y Salud de Servicios
+![Consola Servicios y Salud](docs/screenshots/consola_servicios_salud.png)
+
+#### Code Sessions, Agentes Especializados e Inferencia Interactiva
+![Code Sessions y Agentes](docs/screenshots/consola_code_sessions_agentes.png)

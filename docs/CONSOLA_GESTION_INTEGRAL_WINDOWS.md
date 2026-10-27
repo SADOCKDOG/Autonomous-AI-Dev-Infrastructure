@@ -63,7 +63,16 @@ La aplicacion se ejecuta de forma nativa en el host Windows 11 sin requerir depe
   - **Boton "Aprobacion Humana (AI-GRC)":** Permite al Director Tecnico o Veterinario revisar el diff y emitir la decision formal para promover tareas de `REVIEW` a `DONE`.
   - **Boton "Ejecutar Ciclo Multiagente":** Dispara la ejecucion orquestada en segundo plano sin congelar la interfaz grafica.
 
-### Modulo 3: Gestor de Incidencias Operacionales y AI-GRC
+### Modulo 3: Code Sessions e Interaccion con Agentes
+- **Hub Web de FCC (:8082/admin/code):** Enlace directo al visor web de sesiones de código de FCC.
+- **Lanzadores de Terminal:** Botones para invocar de forma desacoplada sesiones de Claude Code CLI (`launch_fcc_client.bat`) y Aider/Codex con variables de entorno de proxy loopback preconfiguradas.
+- **Consola Interactiva de Agentes:**
+  - Selector de roles especializados (Arquitecto, Analista, Desarrollador, QA Tester, Auditor AI-GRC, Project Manager).
+  - Selector de modelos optimizado con prioridad gratuita (`kilo/kilo-auto/free`, `kilo/openrouter/free`, `open_router/openrouter/free`, `openrouter/auto`) y comerciales (`claude-3-5-sonnet-20241022`, `gpt-4o`).
+  - Campo de entrada multilínea destacado con atajo `Ctrl+Enter`.
+  - Inferencia asíncrona sobre `/v1/messages` y registro inmutable en auditoría SQLite WAL (`AGENT_INTERACTIVE_SESSION`).
+
+### Modulo 4: Gestor de Incidencias Operacionales y AI-GRC
 - **Deteccion Automatica:**
   - Cada vez que una tarea queda bloqueada por intento de fuga de datos sensibles o deteccion de secretos en el diff, el sistema registra una incidencia con severidad `critical` o `high`.
 - **Registro Manual:**
@@ -72,7 +81,7 @@ La aplicacion se ejecuta de forma nativa en el host Windows 11 sin requerir depe
   - Estados: `open` -> `analyzing` -> `resolved` -> `closed`.
   - Dialogo modal para registrar notas de resolucion tecnica y firma digital del operador.
 
-### Modulo 4: Registro de Eventos e Informes de Auditoria
+### Modulo 5: Registro de Eventos e Informes de Auditoria
 - **Visor Forense:**
   - Visualizacion de la secuencia cronologica inmutable de transiciones de agentes (`task_events`) y acciones protegidas (`audit_logs`).
 - **Exportador Formal de Informes:**
