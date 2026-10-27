@@ -1,4 +1,4 @@
-"""Rutas REST para el tablero Kanban."""
+"""Rutas REST para el tablero Kanban y orquestación de agentes."""
 
 from fastapi import APIRouter, HTTPException, Query
 from software_factory.kanban.schema import (
@@ -8,6 +8,7 @@ from software_factory.kanban.schema import (
     TaskTransitionRequest,
 )
 from software_factory.kanban.service import KanbanService, KanbanValidationError
+from software_factory.orchestration.graph import run_analyst_flow
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Kanban"])
 
@@ -41,3 +42,18 @@ def transition_task(task_id: str, request: TaskTransitionRequest) -> TaskRespons
         raise HTTPException(status_code=404, detail=str(exc))
     except KanbanValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+
+
+@router.post("/{task_id}/analyze", response_model=TaskResponse)
+async def analyze_task(task_id: str) -> TaskResponse:
+    """Ejecuta el flujo del Agente Analista mediante LangGraph sobre la tarea."""
+    try:
+        KanbanService.get_task(task_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    state = await run_analyst_flow(task_id)
+    if state.get("error_message"):
+        raise HTTPException(status_code=500, detail=state["error_message"])
+
+    return KanbanService.get_task(task_id)

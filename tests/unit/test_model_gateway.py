@@ -143,9 +143,9 @@ async def test_data_policy_restricted_requires_human_approval():
 async def test_model_gateway_agent_routing():
     """Verifica que el gateway resuelve el proveedor adecuado según el rol del agente."""
     gateway = ModelGateway()
-    # analyst -> fcc_responses por defecto
+    # analyst -> fcc_anthropic por defecto en agents.yaml
     provider = gateway.resolve_provider_for_agent("analyst")
-    assert provider.provider_name == "fcc_responses"
+    assert provider.provider_name == "fcc_anthropic"
 
     # Verificar que healthcheck_all reporta todos los proveedores
     health = await gateway.healthcheck_all()

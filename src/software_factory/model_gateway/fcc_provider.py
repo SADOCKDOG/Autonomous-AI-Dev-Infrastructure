@@ -251,30 +251,77 @@ class FCCResponsesProvider:
             "model": request.model,
             "instructions": instructions.strip() if instructions else None,
             "input": "\n".join(input_messages),
-            "stream": False,
+            "stream": True,
             "temperature": request.temperature,
             "max_output_tokens": request.max_tokens,
         }
 
-        resp = await self._request("POST", "/responses", json=payload)
+        # Manejo de streaming SSE para /v1/responses
+        url = f"{self.base_url}/responses"
+        headers = self._get_headers()
+        content = ""
+        raw_usage: dict[str, Any] = {}
+
+        try:
+            if self._client:
+                resp = await self._client.post(url, json=payload, headers=headers, timeout=self.timeout)
+                if resp.is_error:
+                    raise ProviderError(f"Error HTTP {resp.status_code}: {resp.text}", provider=self.provider_name, status_code=resp.status_code)
+                if "data: " in resp.text:
+                    for line in resp.text.splitlines():
+                        if line.startswith("data: "):
+                            line_data = line[6:].strip()
+                            if line_data and line_data != "[DONE]":
+                                try:
+                                    chunk = json.loads(line_data)
+                                    if "delta" in chunk:
+                                        content += chunk["delta"].get("text", "")
+                                    elif "text" in chunk:
+                                        content += chunk["text"]
+                                    if "usage" in chunk:
+                                        raw_usage = chunk["usage"]
+                                except Exception:
+                                    pass
+                else:
+                    try:
+                        data = resp.json()
+                        choice_content = ""
+                        if "choices" in data and len(data["choices"]) > 0:
+                            choice_content = data["choices"][0].get("message", {}).get("content", "")
+                        content = data.get("output", "") or data.get("text", "") or choice_content
+                        if isinstance(content, list):
+                            content = "".join(str(c) for c in content)
+                        raw_usage = data.get("usage", {})
+                    except Exception:
+                        pass
+            else:
+                async with httpx.AsyncClient(timeout=self.timeout) as c:
+                    async with c.stream("POST", url, json=payload, headers=headers) as stream_resp:
+                        if stream_resp.is_error:
+                            await stream_resp.aread()
+                            raise ProviderError(f"Error HTTP {stream_resp.status_code}: {stream_resp.text}", provider=self.provider_name, status_code=stream_resp.status_code)
+                        async for line in stream_resp.aiter_lines():
+                            if line.startswith("data: "):
+                                line_data = line[6:].strip()
+                                if line_data and line_data != "[DONE]":
+                                    try:
+                                        chunk = json.loads(line_data)
+                                        if "delta" in chunk:
+                                            content += chunk["delta"].get("text", "")
+                                        elif "text" in chunk:
+                                            content += chunk["text"]
+                                        if "usage" in chunk:
+                                            raw_usage = chunk["usage"]
+                                    except Exception:
+                                        pass
+        except httpx.TimeoutException as exc:
+            raise TimeoutError(f"Timeout en FCC Responses {url}", provider=self.provider_name) from exc
+        except httpx.ConnectError as exc:
+            raise ProviderError(f"No se pudo conectar a FCC Responses en {self.base_url}", provider=self.provider_name) from exc
+        except httpx.HTTPError as exc:
+            raise ProviderError(f"Error de red en FCC Responses: {str(exc)}", provider=self.provider_name) from exc
+
         latency_ms = (time.perf_counter() - start_time) * 1000
-
-        if resp.status_code in (401, 403):
-            raise AuthenticationError("Credenciales rechazadas por FCC (/v1/responses)", provider=self.provider_name, status_code=resp.status_code)
-        if resp.status_code == 429:
-            raise RateLimitError("Rate limit en FCC Responses", provider=self.provider_name, status_code=429)
-        if resp.is_error:
-            raise ProviderError(f"Error HTTP {resp.status_code}: {resp.text}", provider=self.provider_name, status_code=resp.status_code)
-
-        data = resp.json()
-        choice_content = ""
-        if "choices" in data and len(data["choices"]) > 0:
-            choice_content = data["choices"][0].get("message", {}).get("content", "")
-        content = data.get("output", "") or data.get("text", "") or choice_content
-        if isinstance(content, list):
-            content = "".join(str(c) for c in content)
-
-        raw_usage = data.get("usage", {})
         usage = ModelUsage(
             prompt_tokens=raw_usage.get("input_tokens", 0),
             completion_tokens=raw_usage.get("output_tokens", 0),
