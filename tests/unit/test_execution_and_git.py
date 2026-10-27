@@ -16,6 +16,21 @@ async def test_command_executor_allowed_command():
     assert "On branch" in res.stdout or "fatal" not in res.stderr
 
 
+def test_command_executor_validates_livestock_stack():
+    executor = CommandExecutor()
+    # Comandos autorizados para Livestock Manager
+    assert executor.validate_command("npm test") == ["npm", "test"]
+    assert executor.validate_command("npx playwright test") == ["npx", "playwright", "test"]
+    assert executor.validate_command("cargo test") == ["cargo", "test"]
+    assert executor.validate_command("node --version") == ["node", "--version"]
+
+    # Subcomandos bloqueados fuera de la allowlist
+    with pytest.raises(CommandSecurityError):
+        executor.validate_command("npm install -g malicious-package")
+    with pytest.raises(CommandSecurityError):
+        executor.validate_command("cargo install eviltarget")
+
+
 @pytest.mark.asyncio
 async def test_command_executor_blocks_disallowed_binary():
     executor = CommandExecutor()

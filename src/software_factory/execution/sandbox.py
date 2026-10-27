@@ -28,6 +28,10 @@ ALLOWED_COMMANDS_SPEC: dict[str, set[str] | None] = {
     "python": None,
     "python3": None,
     "ruff": {"check", "format"},
+    "node": None,
+    "npm": {"test", "run", "build", "ci", "list", "view"},
+    "npx": {"playwright", "cap", "tsc", "eslint"},
+    "cargo": {"test", "build", "check"},
 }
 
 DANGEROUS_CHARACTERS = {";", "&", "|", "`", "$", ">", "<", "\n", "\r"}

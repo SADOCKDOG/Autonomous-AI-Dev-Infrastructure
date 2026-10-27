@@ -153,3 +153,30 @@ async def test_model_gateway_agent_routing():
     assert "azure_foundry" in health
     assert "foundry_local" in health
     assert health["foundry_local"].status == "disabled"
+    assert "sadogfarm.onmicrosoft.com" in health["azure_foundry"].details
+
+
+@pytest.mark.asyncio
+async def test_azure_foundry_sdogfarm_entra_id_mock_and_token():
+    """Verifica que el proveedor de Microsoft Foundry maneja el tenant sadogfarm.onmicrosoft.com."""
+    provider = AzureFoundryProvider(
+        endpoint="https://sdogfarm-foundry.cognitiveservices.azure.com",
+        deployment="sdogfarm-gpt4o",
+        tenant_id="sadogfarm.onmicrosoft.com",
+        client_id="dummy-client-id",
+        client_secret="dummy-client-secret",
+        mock_mode=True,
+    )
+
+    req = ModelRequest(
+        messages=[ChatMessage(role="user", content="Planificar refactorizacion")],
+        model="sdogfarm-gpt4o",
+    )
+    res = await provider.generate(req)
+    assert res.provider == "azure_foundry"
+    assert "sdogfarm-gpt4o" in res.model
+    assert "[Azure Mock Response]" in res.content
+
+    health = await provider.healthcheck()
+    assert health.status == "healthy"
+    assert "sadogfarm.onmicrosoft.com" in health.details

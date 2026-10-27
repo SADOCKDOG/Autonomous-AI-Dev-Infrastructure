@@ -18,13 +18,16 @@ from software_factory.model_gateway.base import (
 
 
 class AzureFoundryProvider:
-    """Adaptador de inferencia directo hacia Azure AI Foundry."""
+    """Adaptador de inferencia directo hacia Azure AI Foundry (Microsoft Foundry Sdog Farm)."""
 
     def __init__(
         self,
         endpoint: str | None = None,
         deployment: str | None = None,
         api_key: str | None = None,
+        tenant_id: str | None = None,
+        client_id: str | None = None,
+        client_secret: str | None = None,
         mock_mode: bool = False,
         timeout: float = 60.0,
         client: httpx.AsyncClient | None = None,
@@ -32,9 +35,15 @@ class AzureFoundryProvider:
         self.endpoint = (endpoint or "").rstrip("/")
         self.deployment = deployment
         self.api_key = api_key
-        self.mock_mode = mock_mode or not bool(endpoint and (api_key or deployment))
+        self.tenant_id = tenant_id or "sadogfarm.onmicrosoft.com"
+        self.client_id = client_id
+        self.client_secret = client_secret
+        has_credentials = bool(api_key or (client_id and client_secret))
+        self.mock_mode = mock_mode or not bool(endpoint and (has_credentials or deployment))
         self.timeout = timeout
         self._client = client
+        self._cached_bearer_token: str | None = None
+        self._token_expires_at: float = 0.0
 
     @property
     def provider_name(self) -> str:
@@ -44,6 +53,52 @@ class AzureFoundryProvider:
     def is_local(self) -> bool:
         # Azure siempre es un servicio remoto
         return False
+
+    async def _get_auth_headers(self) -> dict[str, str]:
+        """Resuelve cabeceras mediante API key directa o token OAuth 2.0 de Microsoft Entra ID."""
+        if self.api_key:
+            return {"api-key": self.api_key}
+
+        if self.client_id and self.client_secret and self.tenant_id:
+            now = time.time()
+            if self._cached_bearer_token and now < (self._token_expires_at - 60):
+                return {"Authorization": f"Bearer {self._cached_bearer_token}"}
+
+            token_url = f"https://login.microsoftonline.com/{self.tenant_id}/oauth2/v2.0/token"
+            data = {
+                "grant_type": "client_credentials",
+                "client_id": self.client_id,
+                "client_secret": self.client_secret,
+                "scope": "https://cognitiveservices.azure.com/.default",
+            }
+            try:
+                if self._client:
+                    resp = await self._client.post(token_url, data=data, timeout=self.timeout)
+                else:
+                    async with httpx.AsyncClient(timeout=self.timeout) as c:
+                        resp = await c.post(token_url, data=data)
+
+                if resp.is_success:
+                    tok_data = resp.json()
+                    self._cached_bearer_token = tok_data.get("access_token")
+                    expires_in = tok_data.get("expires_in", 3600)
+                    self._token_expires_at = now + expires_in
+                    return {"Authorization": f"Bearer {self._cached_bearer_token}"}
+                else:
+                    raise AuthenticationError(
+                        f"Error autenticando con Microsoft Entra ID ({self.tenant_id}): HTTP {resp.status_code}",
+                        provider=self.provider_name,
+                        status_code=resp.status_code,
+                    )
+            except Exception as exc:
+                if isinstance(exc, AuthenticationError):
+                    raise
+                raise AuthenticationError(
+                    f"Fallo en handshake de tokens con Microsoft Entra ID: {exc}",
+                    provider=self.provider_name,
+                ) from exc
+
+        return {}
 
     async def generate(self, request: ModelRequest) -> ModelResponse:
         start_time = time.perf_counter()
@@ -66,9 +121,10 @@ class AzureFoundryProvider:
             )
 
         url = f"{self.endpoint}/openai/deployments/{self.deployment}/chat/completions?api-version=2024-06-01"
+        auth_headers = await self._get_auth_headers()
         headers = {
             "Content-Type": "application/json",
-            "api-key": self.api_key or "",
+            **auth_headers,
         }
         payload = {
             "messages": [m.model_dump(exclude_none=True) for m in request.messages],
@@ -119,12 +175,12 @@ class AzureFoundryProvider:
             return ProviderHealth(
                 provider=self.provider_name,
                 status="healthy",
-                details="Modo simulado activo (sin consumo de créditos de Azure)",
+                details=f"Modo simulado activo para Microsoft Foundry Sdog Farm (Tenant: {self.tenant_id})",
             )
         return ProviderHealth(
             provider=self.provider_name,
             status="healthy" if self.endpoint else "unhealthy",
-            details="Conectado a Azure AI Foundry" if self.endpoint else "Endpoint no configurado",
+            details=f"Conectado a Microsoft Foundry Sdog Farm ({self.tenant_id})" if self.endpoint else "Endpoint no configurado",
         )
 
     async def capabilities(self, model: str) -> ModelCapabilities:

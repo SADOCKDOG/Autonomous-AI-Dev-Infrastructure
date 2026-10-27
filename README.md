@@ -77,11 +77,13 @@ Autonomous-AI-Dev-Infrastructure/
 ├── config/
 │   ├── models.example.yaml
 │   ├── agents.yaml
-│   └── policies.yaml
+│   ├── policies.yaml
+│   └── azure_foundry_sdogfarm.yaml
 ├── docs/
 │   ├── runbook.md
 │   ├── especificacion_arquitectura_v1_1.md
 │   ├── reporte_ejecucion_hitos.md
+│   ├── INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md
 │   └── piloto_livestock_manager/
 │       ├── AI_GOVERNANCE_RISK_COMPLIANCE.md
 │       ├── PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md
@@ -171,8 +173,8 @@ $$\text{BACKLOG} \longrightarrow \text{READY} \longrightarrow \text{PLANNING} \l
 
 ## 5. Bateria de Verificacion Automatizada
 
-El repositorio cuenta con 37 pruebas automatizadas estructuradas:
-- **Unitarias (29 tests):** Validacion de esquemas, persistencia SQLite, resolucion de proveedores, aislamiento Git, allowlist de sandbox, escaneo de secretos y logica de agentes.
+El repositorio cuenta con 39 pruebas automatizadas estructuradas:
+- **Unitarias (31 tests):** Validacion de esquemas, persistencia SQLite, resolucion de proveedores, aislamiento Git, allowlist de sandbox (incluyendo soporte Node/Playwright/Cargo para Livestock Manager), escaneo de secretos, autenticacion Microsoft Foundry (Entra ID sadogfarm.onmicrosoft.com) y logica de agentes.
 - **Integracion y Aceptacion (8 tests):** Modo degradado ante caidas de proveedores, aislamiento estricto `local_only`, recuperacion tras reinicio, auditoria libre de secretos, flujo end-to-end con aprobacion humana y verificacion de politicas de gobernanza AI-GRC para el piloto Livestock Manager.
 
 Ejecucion de pruebas:
@@ -217,3 +219,8 @@ Este piloto establece e implementa de manera estricta una funcion de **Gobierno,
    - **Barrera de Aprobacion Humana:** Transicion controlada a `DONE` tras autorizacion formal auditada del Director Tecnico.
    - Informe de ejecucion y trazas: [docs/piloto_livestock_manager/REPORTE_SIMULACION_Y_EVIDENCIAS.md](docs/piloto_livestock_manager/REPORTE_SIMULACION_Y_EVIDENCIAS.md).
    - Script ejecutable: [scripts/simulate_livestock_pilot.py](scripts/simulate_livestock_pilot.py).
+
+5. **Integracion con Microsoft Azure AI Foundry (Sdog Farm Software Factory):**
+   - Conector tipado con soporte para Microsoft Entra ID (`sadogfarm.onmicrosoft.com`), gestion de tokens OAuth 2.0 y mapeo de despliegues (`sdogfarm-gpt4o`, `sdogfarm-phi4`, `sdogfarm-gpt4o-mini`).
+   - Guia tecnica: [docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md](docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md).
+   - Configuracion declarativa: [config/azure_foundry_sdogfarm.yaml](config/azure_foundry_sdogfarm.yaml).

@@ -44,7 +44,10 @@ class ModelGateway:
         self._providers["azure_foundry"] = AzureFoundryProvider(
             endpoint=settings.azure_ai_endpoint,
             deployment=settings.azure_ai_model_deployment,
-            api_key=settings.azure_client_secret,
+            api_key=settings.azure_client_secret if not settings.azure_client_id else None,
+            tenant_id=settings.azure_tenant_id or "sadogfarm.onmicrosoft.com",
+            client_id=settings.azure_client_id,
+            client_secret=settings.azure_client_secret,
             mock_mode=bool(not settings.azure_ai_endpoint),
         )
 

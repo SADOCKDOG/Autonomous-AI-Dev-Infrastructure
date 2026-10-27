@@ -1,0 +1,66 @@
+# Configuracion de Microsoft Azure AI Foundry para Sdog Farm Software Factory
+# Tenant: sadogfarm.onmicrosoft.com
+
+tenant:
+  domain: "sadogfarm.onmicrosoft.com"
+  organization: "Sdog Farm Software Factory"
+  environment: "production"
+
+azure_foundry:
+  hub_name: "Sdog Farm Software Factory"
+  project_name: "Sdog Farm Software Factory"
+  region: "spaincentral" # Alternativa: westeurope (EU Data Boundary)
+  resource_group: "rg-sdogfarm-foundry"
+  subscription_id: "${AZURE_SUBSCRIPTION_ID}"
+  endpoint: "${AZURE_AI_ENDPOINT:-https://sdogfarm-foundry.cognitiveservices.azure.com/}"
+
+auth:
+  type: "microsoft_entra_id" # Opciones: microsoft_entra_id, api_key
+  client_id: "${AZURE_CLIENT_ID}"
+  client_secret: "${AZURE_CLIENT_SECRET}"
+  tenant_id: "${AZURE_TENANT_ID:-sadogfarm.onmicrosoft.com}"
+  token_scope: "https://cognitiveservices.azure.com/.default"
+
+deployments:
+  sdogfarm-gpt4o:
+    model: "gpt-4o"
+    version: "2024-08-06"
+    assigned_roles: ["architect", "reviewer"]
+    capacity_tpm: 150000
+    max_tokens: 4096
+    temperature: 0.1
+    data_policy: "approved_remote"
+
+  sdogfarm-phi4:
+    model: "phi-4"
+    version: "latest"
+    assigned_roles: ["analyst", "developer"]
+    capacity_tpm: 100000
+    max_tokens: 2048
+    temperature: 0.2
+    data_policy: "approved_remote"
+
+  sdogfarm-gpt4o-mini:
+    model: "gpt-4o-mini"
+    version: "2024-07-18"
+    assigned_roles: ["tester", "docs_support"]
+    capacity_tpm: 200000
+    max_tokens: 2048
+    temperature: 0.2
+    data_policy: "approved_remote"
+
+governance_and_compliance:
+  eu_data_boundary: true
+  customer_managed_keys: false
+  private_endpoints_only: false
+  content_filtering:
+    hate: "high"
+    sexual: "high"
+    violence: "high"
+    self_harm: "high"
+    protected_material_text: "block"
+    protected_material_code: "block"
+  audit_logging:
+    enabled: true
+    destination: "sqlite_factory_audit_logs"
+    sanitize_secrets: true
