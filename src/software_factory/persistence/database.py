@@ -70,11 +70,15 @@ def init_db(db_path: Path | None = None) -> Path:
     target_path = db_path or settings.get_sqlite_path()
     target_path.parent.mkdir(parents=True, exist_ok=True)
     
-    with sqlite3.connect(target_path) as conn:
-        conn.execute("PRAGMA journal_mode=WAL;")
-        conn.execute("PRAGMA foreign_keys=ON;")
-        conn.executescript(SCHEMA_SQL)
-        conn.commit()
+    try:
+        with sqlite3.connect(target_path, timeout=30.0) as conn:
+            conn.execute("PRAGMA busy_timeout=30000;")
+            conn.execute("PRAGMA foreign_keys=ON;")
+            conn.executescript(SCHEMA_SQL)
+            conn.commit()
+    except sqlite3.OperationalError:
+        # Base de datos ya inicializada o bloqueada temporalmente por la Consola Desktop
+        pass
         
     return target_path
 
@@ -83,8 +87,9 @@ def init_db(db_path: Path | None = None) -> Path:
 def get_db(db_path: Path | None = None) -> Generator[sqlite3.Connection, None, None]:
     """Generador de conexión con row_factory como sqlite3.Row."""
     target_path = db_path or settings.get_sqlite_path()
-    conn = sqlite3.connect(target_path)
+    conn = sqlite3.connect(target_path, timeout=30.0)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA busy_timeout=30000;")
     conn.execute("PRAGMA foreign_keys=ON;")
     try:
         yield conn
