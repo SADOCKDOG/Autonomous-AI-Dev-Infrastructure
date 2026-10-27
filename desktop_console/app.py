@@ -954,17 +954,38 @@ class DesktopConsoleApp(tk.Tk):
         self.safe_after(0, _do)
 
     def start_fastapi_backend(self):
-        """Inicia el backend FastAPI en un subproceso de Windows si no esta levantado."""
+        """Inicia el backend FastAPI en un subproceso si no esta levantado."""
         def run():
             try:
                 self.log_service_message("Lanzando servidor FastAPI en puerto 8000...")
-                cmd = [sys.executable, "-m", "uvicorn", "software_factory.api.main:app", "--host", "127.0.0.1", "--port", "8000"]
-                env = os.environ.copy()
-                env["PYTHONPATH"] = f"{SRC_DIR};{ROOT_DIR}"
-                self.backend_process = subprocess.Popen(cmd, cwd=str(ROOT_DIR), env=env)
-                time.sleep(1.5)
+
+                # Comprobar si WSL esta disponible para ejecutar uvicorn dentro del entorno preparado
+                has_wsl = False
+                try:
+                    chk = subprocess.run(["wsl", "which", "python3"], capture_output=True, text=True, timeout=2)
+                    has_wsl = (chk.returncode == 0)
+                except Exception:
+                    pass
+
+                if has_wsl:
+                    self.log_service_message("Iniciando FastAPI mediante entorno virtual WSL2 en 0.0.0.0:8000...")
+                    cmd = ["wsl", "bash", "-c", "cd ~/software-factory && source .venv/bin/activate && export PYTHONPATH=src && python -m uvicorn software_factory.api.main:app --host 0.0.0.0 --port 8000"]
+                    self.backend_process = subprocess.Popen(cmd)
+                elif SRC_DIR.exists():
+                    self.log_service_message("Iniciando FastAPI directamente en host Windows...")
+                    cmd = [sys.executable, "-m", "uvicorn", "software_factory.api.main:app", "--host", "127.0.0.1", "--port", "8000"]
+                    env = os.environ.copy()
+                    env["PYTHONPATH"] = f"{SRC_DIR};{ROOT_DIR}"
+                    self.backend_process = subprocess.Popen(cmd, cwd=str(ROOT_DIR), env=env)
+                else:
+                    self.log_service_message("Repositorio backend no detectado.")
+                    messagebox.showinfo("Servicio Backend", "Asegurese de que el repositorio este presente.")
+                    return
+
+                time.sleep(2.0)
                 self.check_services_health()
-                self.log_service_message(f"Backend iniciado con PID={self.backend_process.pid}")
+                if self.backend_process:
+                    self.log_service_message("Servidor FastAPI lanzado satisfactoriamente.")
             except Exception as exc:
                 self.log_service_message(f"Error iniciando backend: {exc}")
 
@@ -973,11 +994,17 @@ class DesktopConsoleApp(tk.Tk):
     def stop_fastapi_backend(self):
         """Detiene el backend si fue lanzado desde la consola."""
         if self.backend_process:
-            self.backend_process.terminate()
+            try:
+                self.backend_process.terminate()
+            except Exception:
+                pass
             self.backend_process = None
             self.log_service_message("Proceso de backend detenido por el operador.")
-        else:
-            self.log_service_message("No hay proceso de backend local registrado bajo esta consola.")
+        try:
+            subprocess.run(["wsl", "pkill", "-f", "software_factory.api.main"], capture_output=True, timeout=2)
+            subprocess.run(["wsl", "pkill", "-f", "uvicorn"], capture_output=True, timeout=2)
+        except Exception:
+            pass
         self.check_services_health()
 
     def test_fcc_connectivity(self):
