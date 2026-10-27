@@ -32,10 +32,12 @@ class ModelGateway:
         self._providers["fcc_responses"] = FCCResponsesProvider(
             base_url=settings.fcc_responses_base_url,
             token=settings.fcc_proxy_token,
+            timeout=settings.fcc_timeout,
         )
         self._providers["fcc_anthropic"] = FCCAnthropicProvider(
             base_url=settings.fcc_anthropic_base_url,
             token=settings.fcc_proxy_token,
+            timeout=settings.fcc_timeout,
         )
 
         # 2. Azure AI Foundry (Modo mock si no hay créditos configurados)

@@ -1,0 +1,117 @@
+# Configuracion de la Software Factory para el Piloto Livestock Manager
+# Marco de Gobierno AI-GRC y Asignacion de Roles
+
+project:
+  name: "Livestock Manager"
+  version: "4.11.0"
+  description: "Sistema Integral de Gestion Ganadera Offline-First con Cumplimiento SIGGAN/BADIGEX"
+
+defaults:
+  provider: fcc_anthropic
+  timeout_seconds: 120
+  max_retries: 2
+
+# Matriz de Agentes Especializados y Clasificacion de Datos
+agents:
+  agent_pm:
+    role: "Project Manager"
+    provider: fcc_anthropic
+    model_env: MODEL_ANALYST
+    data_classification: project_context
+    autonomy_level: 1
+
+  agent_compliance:
+    role: "Responsable de Cumplimiento Normativo y Auditor Interno"
+    provider: fcc_anthropic
+    model_env: MODEL_REVIEWER
+    data_classification: restricted
+    autonomy_level: 2
+
+  agent_architect:
+    role: "Arquitecto de Plataforma y Director UI/UX Neon"
+    provider: fcc_anthropic
+    model_env: MODEL_ARCHITECT
+    data_classification: project_context
+    autonomy_level: 1
+
+  agent_dev_backend:
+    role: "Desarrollador Backend y Datos (SQLite / IndexedDB)"
+    provider: fcc_anthropic
+    model_env: MODEL_DEVELOPER
+    data_classification: approved_code_context
+    autonomy_level: 2
+
+  agent_dev_android:
+    role: "Especialista Android y Capacitor 7"
+    provider: fcc_anthropic
+    model_env: MODEL_DEVELOPER
+    data_classification: approved_code_context
+    autonomy_level: 2
+
+  agent_dev_windows:
+    role: "Especialista Windows Nativo y Tauri"
+    provider: fcc_anthropic
+    model_env: MODEL_DEVELOPER
+    data_classification: approved_code_context
+    autonomy_level: 2
+
+  agent_qa_devops:
+    role: "Ingeniero de QA, Automatizacion y DevOps"
+    provider: fcc_anthropic
+    model_env: MODEL_TESTER
+    data_classification: test_context
+    autonomy_level: 2
+
+  agent_security:
+    role: "Especialista en Seguridad y Privacidad"
+    provider: fcc_anthropic
+    model_env: MODEL_REVIEWER
+    data_classification: approved_diff
+    autonomy_level: 2
+
+  agent_docs_support:
+    role: "Responsable de Documentacion Oficial y Soporte"
+    provider: fcc_anthropic
+    model_env: MODEL_ANALYST
+    data_classification: project_context
+    autonomy_level: 1
+
+# Politicas de Seguridad y Allowlist de Sandbox
+security_policies:
+  command_execution:
+    default_action: deny
+    allowed_commands:
+      - git
+      - pytest
+      - python3
+      - ruff
+      - node
+      - npx
+    timeout_seconds: 60
+    max_output_bytes: 1048576  # 1 MB
+
+  data_boundaries:
+    local_only:
+      allow_remote_providers: false
+      allow_fcc_proxy: true
+      prohibited_data_types:
+        - codigos_rega
+        - identificadores_animal_crotal_dib
+        - coordenadas_sigpac_parcelas
+        - nif_cif_ganaderos
+    approved_remote:
+      allow_remote_providers: true
+    restricted:
+      allow_remote_providers: false
+      requires_human_approval: true
+      data_types:
+        - periodos_supresion_sanitaria_medicamentos
+        - guias_oficiales_movimiento
+        - esquemas_migracion_bd
+
+  human_approval_required_for:
+    - transicion_a_done
+    - git_push
+    - git_merge
+    - modificacion_plazos_sanitarios
+    - exportacion_oficial_siggan
