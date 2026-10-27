@@ -107,6 +107,12 @@ class CommandExecutor:
         if venv_bin.exists():
             exec_env["PATH"] = f"{venv_bin}{os.pathsep}{exec_env.get('PATH', '')}"
 
+        # Inyectar rutas de importación en PYTHONPATH
+        if working_dir:
+            worktree_src = str(Path(working_dir) / "src")
+            current_pp = exec_env.get("PYTHONPATH", "")
+            exec_env["PYTHONPATH"] = f"{worktree_src}{os.pathsep}{working_dir}{os.pathsep}{current_pp}"
+
         # Resolver ruta canónica del ejecutable en el PATH efectivo
         bin_resolved = shutil.which(tokens[0], path=exec_env.get("PATH"))
         cmd_tokens = [bin_resolved if bin_resolved else tokens[0]] + tokens[1:]
