@@ -88,9 +88,9 @@ def init_db(db_path: Path | None = None) -> Path:
 def get_db(db_path: Path | None = None) -> Generator[sqlite3.Connection, None, None]:
     """Generador de conexión con row_factory como sqlite3.Row."""
     target_path = db_path or settings.get_sqlite_path()
-    conn = sqlite3.connect(target_path, timeout=30.0)
+    conn = sqlite3.connect(target_path, timeout=60.0)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA busy_timeout=30000;")
+    conn.execute("PRAGMA busy_timeout=60000;")
     conn.execute("PRAGMA foreign_keys=ON;")
     try:
         yield conn
