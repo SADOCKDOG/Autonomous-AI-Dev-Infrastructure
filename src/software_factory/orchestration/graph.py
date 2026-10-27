@@ -116,6 +116,7 @@ async def developer_node(state: FactoryState) -> FactoryState:
             plan_summary=plan_data.get("summary", ""),
             plan_steps=plan_data.get("plan_steps", []),
             worktree_path=worktree_path,
+            acceptance_criteria=state.get("acceptance_criteria", []),
             data_classification=state.get("data_classification", "approved_code_context"),
         )
 
