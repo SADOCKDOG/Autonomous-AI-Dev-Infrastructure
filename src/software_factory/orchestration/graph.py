@@ -220,6 +220,27 @@ async def error_node(state: FactoryState) -> FactoryState:
             reason=error_msg,
         ),
     )
+
+    try:
+        from software_factory.kanban.incidents import IncidentService, IncidentCreate
+        category = "policy_violation" if "política" in error_msg.lower() else "runtime_error"
+        if "secreto" in error_msg.lower():
+            category = "secret_detected"
+        severity = "critical" if category in ("policy_violation", "secret_detected") else "high"
+
+        IncidentService.create_incident(
+            IncidentCreate(
+                task_id=task_id,
+                title=f"Bloqueo en tarea {task_id}: {error_msg[:70]}",
+                description=error_msg,
+                severity=severity,
+                category=category,
+                reported_by="LangGraph Coordinator",
+            )
+        )
+    except Exception:
+        pass
+
     return {**state, "status": TaskStatus.BLOCKED.value}
 
 

@@ -71,9 +71,12 @@ Autonomous-AI-Dev-Infrastructure/
 ├── README.md
 ├── ARCHITECTURE.md
 ├── SECURITY.md
+├── run_console.bat
 ├── pyproject.toml
 ├── .gitignore
 ├── .env.example
+├── desktop_console/
+│   └── app.py
 ├── config/
 │   ├── models.example.yaml
 │   ├── agents.yaml
@@ -85,6 +88,7 @@ Autonomous-AI-Dev-Infrastructure/
 │   ├── reporte_ejecucion_hitos.md
 │   ├── INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md
 │   ├── ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md
+│   ├── CONSOLA_GESTION_INTEGRAL_WINDOWS.md
 │   └── piloto_livestock_manager/
 │       ├── AI_GOVERNANCE_RISK_COMPLIANCE.md
 │       ├── PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md
@@ -225,3 +229,15 @@ Este piloto establece e implementa de manera estricta una funcion de **Gobierno,
    - Conector tipado con soporte para Microsoft Entra ID (`sadogfarm.onmicrosoft.com`), gestion de tokens OAuth 2.0 y mapeo de despliegues (`sdogfarm-gpt4o`, `sdogfarm-phi4`, `sdogfarm-gpt4o-mini`).
    - Guia tecnica: [docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md](docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md).
    - Configuracion declarativa: [config/azure_foundry_sdogfarm.yaml](config/azure_foundry_sdogfarm.yaml).
+
+---
+
+## 8. Consola de Gestion Integral de Escritorio para Windows
+
+La infraestructura incorpora una aplicacion grafica nativa para Windows 11 disenada para la monitorizacion y control centralizado:
+- **Lanzador Rapido:** Doble clic sobre [run_console.bat](run_console.bat) o ejecucion via `python desktop_console\app.py`.
+- **Modulo 1 (Servicios y Salud):** Monitorizacion y telemetria en vivo de FCC Server (8082), Backend FastAPI (8000), SQLite WAL, Microsoft Foundry Sdog Farm y motor de Sandbox.
+- **Modulo 2 (Proyectos y Kanban):** Visualizacion interactiva del ciclo de vida de tareas, creacion de nuevas historias tecnicas, expediente arquitectonico y barrera de aprobacion humana (`ApprovalManager`).
+- **Modulo 3 (Gestor de Incidencias):** Seguimiento y resolucion de anomalías operacionales, alertas de seguridad de `SecretScanner` y bloqueos por politicas AI-GRC.
+- **Modulo 4 (Auditoria y Eventos):** Flujo inmutable de transiciones y generador exportador de informes de cumplimiento formal en Markdown/JSON.
+- **Manual de Operacion:** [docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md](docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md).

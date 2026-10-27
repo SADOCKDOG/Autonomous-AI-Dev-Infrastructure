@@ -44,8 +44,24 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS incidents (
+    id TEXT PRIMARY KEY,
+    task_id TEXT,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    severity TEXT NOT NULL DEFAULT 'medium', -- low, medium, high, critical
+    category TEXT NOT NULL DEFAULT 'policy_violation', -- policy_violation, secret_detected, sandbox_failure, timeout, manual
+    status TEXT NOT NULL DEFAULT 'open', -- open, analyzing, resolved, closed
+    reported_by TEXT NOT NULL DEFAULT 'system',
+    resolution_notes TEXT DEFAULT '',
+    resolved_by TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_events_task_id ON task_events(task_id);
+CREATE INDEX IF NOT EXISTS idx_incidents_status ON incidents(status);
 """
 
 

@@ -41,3 +41,7 @@ logs/
 
 # Git worktrees temp
 .worktrees/
+
+# Audit reports
+reports/*.md
+!reports/.gitkeep
