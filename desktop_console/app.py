@@ -12,6 +12,7 @@ import datetime
 import subprocess
 import threading
 import uuid
+import webbrowser
 from pathlib import Path
 
 # Tkinter y TTK
@@ -406,6 +407,32 @@ class DesktopConsoleApp(tk.Tk):
         )
         self.btn_verify_fcc.grid(row=1, column=1, padx=4, pady=4, sticky="ew")
 
+        self.btn_open_fcc_admin = tk.Button(
+            btn_grid,
+            text="Abrir Admin FCC (:8082)",
+            bg="#7C3AED",
+            fg="#FFFFFF",
+            activebackground="#6D28D9",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9, "bold"),
+            relief="flat",
+            command=self.open_fcc_admin,
+        )
+        self.btn_open_fcc_admin.grid(row=2, column=0, padx=4, pady=4, sticky="ew")
+
+        self.btn_start_fcc = tk.Button(
+            btn_grid,
+            text="Iniciar FCC Server",
+            bg="#2563EB",
+            fg="#FFFFFF",
+            activebackground="#1D4ED8",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9),
+            relief="flat",
+            command=self.start_fcc_server,
+        )
+        self.btn_start_fcc.grid(row=2, column=1, padx=4, pady=4, sticky="ew")
+
         btn_grid.columnconfigure(0, weight=1)
         btn_grid.columnconfigure(1, weight=1)
 
@@ -450,7 +477,23 @@ class DesktopConsoleApp(tk.Tk):
 
         # Metricas
         metric_lbl = tk.Label(card, text="Latencia: -- ms | Ultima comprobacion: --", bg="#1E1E1E", fg="#64748B", font=("Segoe UI", 8))
-        metric_lbl.pack(anchor="w", padx=12, pady=(0, 10))
+        metric_lbl.pack(anchor="w", padx=12, pady=(0, 4 if svc_id == "fcc_server" else 10))
+
+        if svc_id == "fcc_server":
+            admin_btn = tk.Button(
+                card,
+                text="Abrir Consola Admin (Web)",
+                bg="#312E81",
+                fg="#C7D2FE",
+                activebackground="#3730A3",
+                activeforeground="#FFFFFF",
+                font=("Segoe UI", 8, "bold"),
+                relief="flat",
+                padx=8,
+                pady=2,
+                command=self.open_fcc_admin,
+            )
+            admin_btn.pack(anchor="w", padx=12, pady=(0, 8))
 
         self.services_cards[svc_id] = {
             "card": card,
@@ -1033,6 +1076,31 @@ class DesktopConsoleApp(tk.Tk):
                 self.log_service_message(f"Comprobacion FCC finalizada: {exc}")
                 messagebox.showinfo("FCC Server", f"El servidor FCC en loopback responde con:\n{exc}")
             self.check_services_health()
+
+        threading.Thread(target=run, daemon=True).start()
+
+    def open_fcc_admin(self):
+        """Abre la consola de administracion web de FCC en el navegador predeterminado."""
+        admin_url = "http://127.0.0.1:8082/admin"
+        self.log_service_message(f"Abriendo consola admin FCC en: {admin_url}")
+        webbrowser.open(admin_url)
+
+    def start_fcc_server(self):
+        """Inicia el servidor FCC con soporte multimodal en segundo plano si no esta activo."""
+        def run():
+            try:
+                self.log_service_message("Lanzando FCC Server (--enable-multimodal)...")
+                fcc_exe = Path(r"C:\Users\yo\.local\bin\fcc-server.exe")
+                if fcc_exe.exists():
+                    cmd = [str(fcc_exe), "--enable-multimodal"]
+                else:
+                    cmd = ["fcc-server.exe", "--enable-multimodal"]
+                subprocess.Popen(cmd)
+                time.sleep(2.0)
+                self.check_services_health()
+                self.log_service_message("FCC Server iniciado satisfactoriamente en puerto 8082.")
+            except Exception as exc:
+                self.log_service_message(f"Error iniciando FCC Server: {exc}")
 
         threading.Thread(target=run, daemon=True).start()
 
