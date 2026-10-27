@@ -27,6 +27,7 @@ class BaseAgent:
         self,
         role_schema_prompt: Optional[str] = None,
         project_context: Optional[str] = None,
+        project_key: Optional[str] = None,
         design_tokens_context: Optional[str] = None,
     ) -> Tuple[str, str]:
         """Obtiene el prompt de sistema consolidado (Directiva de Rol + Contexto Proyecto + Esquema JSON).
@@ -37,6 +38,7 @@ class BaseAgent:
             role=self.role,
             role_schema_prompt=role_schema_prompt,
             project_context=project_context,
+            project_key=project_key,
             design_tokens_context=design_tokens_context,
         )
 

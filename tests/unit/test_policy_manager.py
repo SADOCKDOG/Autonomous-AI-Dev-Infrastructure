@@ -63,6 +63,24 @@ def test_agents_policy_property():
     assert "Agente Revisor" in rev.policy_info[0]
 
 
+def test_knowledge_base_source_of_truth():
+    docs = PolicyManager.load_project_knowledge("livestock-manager")
+    assert len(docs) >= 3
+    assert "arquitectura-del-sistema" in docs
+
+    summary = PolicyManager.get_project_knowledge_summary("livestock-manager")
+    assert "FUENTE DE VERDAD DEL PROYECTO" in summary
+    assert "LIVESTOCK-MANAGER" in summary
+
+    # Probar resolución automática en build_consolidated_prompt pasando project_key
+    prompt, _ = PolicyManager.build_consolidated_prompt(
+        role="architect",
+        project_key="livestock-manager",
+    )
+    assert "FUENTE DE VERDAD DEL PROYECTO" in prompt
+    assert "ARQUITECTURA OFICIAL" in prompt
+
+
 if __name__ == "__main__":
     print("Ejecutando pruebas de PolicyManager...")
     test_policies_directory_exists()
@@ -73,4 +91,6 @@ if __name__ == "__main__":
     print("3. test_build_consolidated_prompt: PASSED")
     test_agents_policy_property()
     print("4. test_agents_policy_property: PASSED")
+    test_knowledge_base_source_of_truth()
+    print("5. test_knowledge_base_source_of_truth: PASSED")
     print("Todas las pruebas de PolicyManager pasaron exitosamente.")
