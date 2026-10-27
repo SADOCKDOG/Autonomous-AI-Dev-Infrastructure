@@ -47,19 +47,46 @@ class DeveloperAgent(BaseAgent):
         plan_steps: list[str],
         worktree_path: Path,
         acceptance_criteria: list[str] | None = None,
+        affected_files: list[str] | None = None,
         data_classification: str = "approved_code_context",
         project_context: str | None = None,
         design_tokens_context: str | None = None,
     ) -> DeveloperResult:
         steps_str = "\n".join(f"- {s}" for s in plan_steps)
         criteria_str = "\n".join(f"- {c}" for c in (acceptance_criteria or []))
+
+        existing_context_blocks = []
+        if affected_files:
+            for rel in affected_files:
+                target_f = (worktree_path / rel).resolve()
+                if target_f.exists() and target_f.is_file():
+                    try:
+                        text = target_f.read_text(encoding="utf-8", errors="ignore")
+                        snippet = text if len(text) <= 12000 else text[:12000] + "\n... [truncado]"
+                        existing_context_blocks.append(
+                            f"--- INICIO ARCHIVO PREEXISTENTE: {rel} ---\n{snippet}\n--- FIN ARCHIVO PREEXISTENTE ---"
+                        )
+                    except Exception:
+                        pass
+
+        existing_prompt = ""
+        if existing_context_blocks:
+            existing_prompt = (
+                "\n\nARCHIVOS PREEXISTENTES A MODIFICAR (PRESERVACIÓN OBLIGATORIA):\n"
+                "REGLA DE ORO DE NO-REGRESIÓN: Debes PRESERVAR intacto el código, métodos y pruebas preexistentes. "
+                "Agrega la nueva funcionalidad o nuevas aserciones sin borrar ni reescribir desde cero los archivos, "
+                "respetando el sistema de módulos original (CommonJS con require/assert, UMD, etc.).\n\n"
+                + "\n\n".join(existing_context_blocks)
+            )
+
         user_prompt = (
             f"ID de Tarea: {task_id}\n"
             f"Título: {title}\n\n"
             f"Criterios de Aceptación a satisfacer:\n{criteria_str or '(No especificados)'}\n\n"
             f"Plan Arquitectónico: {plan_summary}\n"
             f"Pasos del Plan:\n{steps_str}\n"
-            f"Worktree Path: {worktree_path}\n\n"
+            f"Worktree Path: {worktree_path}\n"
+            f"{existing_prompt}\n\n"
             f"Implementa la solución completa generando en la clave 'files' cada uno de los archivos requeridos "
             f"(código fuente, pruebas o informes según los criterios). Responde en formato JSON estricto."
         )
