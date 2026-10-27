@@ -109,6 +109,12 @@ class DeveloperAgent(BaseAgent):
             temperature=0.2,
         )
 
+        try:
+            debug_log = worktree_path / ".factory_dev_debug.log"
+            debug_log.write_text(response.content, encoding="utf-8")
+        except Exception:
+            pass
+
         result = self._parse_response(response.content, task_id, title)
 
         # Aplicar archivos generados en el worktree aislado de forma segura
