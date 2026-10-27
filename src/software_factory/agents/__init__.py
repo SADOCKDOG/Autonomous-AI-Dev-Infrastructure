@@ -2,5 +2,21 @@
 
 from software_factory.agents.base import BaseAgent
 from software_factory.agents.analyst import AnalystAgent, AnalystResult
+from software_factory.agents.architect import ArchitectAgent, ArchitectPlan
+from software_factory.agents.developer import DeveloperAgent, DeveloperResult
+from software_factory.agents.tester import TesterAgent, TestVerdict
+from software_factory.agents.reviewer import ReviewerAgent, ReviewVerdict
 
-__all__ = ["BaseAgent", "AnalystAgent", "AnalystResult"]
+__all__ = [
+    "BaseAgent",
+    "AnalystAgent",
+    "AnalystResult",
+    "ArchitectAgent",
+    "ArchitectPlan",
+    "DeveloperAgent",
+    "DeveloperResult",
+    "TesterAgent",
+    "TestVerdict",
+    "ReviewerAgent",
+    "ReviewVerdict",
+]
