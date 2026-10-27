@@ -1,0 +1,35 @@
+defaults:
+  provider: fcc_responses
+  timeout_seconds: 120
+  max_retries: 2
+
+providers:
+  azure_foundry:
+    enabled: false
+    adapter: azure_foundry
+    endpoint_env: AZURE_AI_ENDPOINT
+    deployment_env: AZURE_AI_MODEL_DEPLOYMENT
+    auth_mode: entra_id
+
+  fcc_anthropic:
+    enabled: true
+    adapter: fcc_anthropic
+    base_url_env: FCC_ANTHROPIC_BASE_URL
+    token_env: FCC_PROXY_TOKEN
+
+  fcc_responses:
+    enabled: true
+    adapter: fcc_responses
+    base_url_env: FCC_RESPONSES_BASE_URL
+    token_env: FCC_PROXY_TOKEN
+
+  foundry_local:
+    enabled: false
+    adapter: foundry_local
+    base_url_env: FOUNDRY_LOCAL_BASE_URL
+    model_env: FOUNDRY_LOCAL_MODEL
+
+fallbacks:
+  enabled: false
+  require_same_data_policy: true
+  max_hops: 1

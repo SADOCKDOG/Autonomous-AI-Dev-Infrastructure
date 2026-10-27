@@ -1,0 +1,36 @@
+agents:
+  coordinator:
+    role: "Gestión de estados, presupuesto y orquestación general"
+    provider: fcc_responses
+    model_env: MODEL_ANALYST
+    data_classification: project_context
+
+  analyst:
+    role: "Interpretación de tarjetas Kanban y definición de criterios de aceptación"
+    provider: fcc_responses
+    model_env: MODEL_ANALYST
+    data_classification: project_context
+
+  architect:
+    role: "Análisis de repositorio y propuesta de plan de cambio antes de editar"
+    provider: fcc_responses
+    model_env: MODEL_ARCHITECT
+    data_classification: project_context
+
+  developer:
+    role: "Implementación de cambios en rama/worktree aislado"
+    provider: fcc_responses
+    model_env: MODEL_DEVELOPER
+    data_classification: approved_code_context
+
+  tester:
+    role: "Ejecución de pruebas y validación de resultados reproducibles"
+    provider: fcc_responses
+    model_env: MODEL_TESTER
+    data_classification: test_context
+
+  reviewer:
+    role: "Auditoría de diff, secretos, calidad y riesgos"
+    provider: fcc_responses
+    model_env: MODEL_REVIEWER
+    data_classification: approved_diff

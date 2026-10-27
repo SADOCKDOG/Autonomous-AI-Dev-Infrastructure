@@ -1,0 +1,31 @@
+security_policies:
+  command_execution:
+    default_action: deny
+    allowed_commands:
+      - git status
+      - git diff
+      - git log
+      - git branch
+      - pytest
+      - python -m pytest
+      - ruff check
+      - ruff format --check
+    timeout_seconds: 60
+    max_output_bytes: 1048576  # 1 MB
+
+  data_boundaries:
+    local_only:
+      allow_remote_providers: false
+      allow_fcc_proxy: true  # FCC con proveedores locales únicamente si está aislado
+    approved_remote:
+      allow_remote_providers: true
+    restricted:
+      allow_remote_providers: false
+      requires_human_approval: true
+
+  human_approval_required_for:
+    - git_push
+    - git_merge
+    - deploy
+    - destructive_filesystem_operations
+    - secrets_modification
