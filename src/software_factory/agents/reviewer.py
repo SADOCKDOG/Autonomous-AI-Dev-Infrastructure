@@ -17,20 +17,13 @@ class ReviewVerdict(BaseModel):
     recommendation_for_human: str = ""
 
 
-REVIEWER_SYSTEM_PROMPT = """Eres el Agente Revisor de Código y Seguridad de la Software Factory.
-Tu labor es auditar el diff final, verificar el cumplimiento de los criterios de aceptación y evaluar los riesgos antes de solicitar la aprobación humana.
-
-REGLAS:
-1. Sé implacable con la calidad, consistencia y seguridad del diff.
-2. Si detectas malas prácticas o riesgos altos, indica is_approved: false.
-3. Responde en formato JSON estricto con la siguiente estructura:
+REVIEWER_SCHEMA_PROMPT = """Responde en formato JSON estricto con la siguiente estructura:
 {
   "is_approved": true,
   "risk_assessment": "low",
   "findings": ["Hallazgo 1", "Hallazgo 2"],
   "recommendation_for_human": "Recomendación para el aprobador humano"
-}
-"""
+}"""
 
 
 class ReviewerAgent(BaseAgent):
@@ -43,6 +36,7 @@ class ReviewerAgent(BaseAgent):
         diff_text: str,
         acceptance_criteria: list[str],
         data_classification: str = "approved_diff",
+        project_context: str | None = None,
     ) -> ReviewVerdict:
         # 1. Escaneo determinista de secretos
         secret_findings = SecretScanner.scan_diff(diff_text)
@@ -65,8 +59,13 @@ class ReviewerAgent(BaseAgent):
             f"Emite tu veredicto de revisión en formato JSON."
         )
 
+        system_prompt, _ = self.get_consolidated_system_prompt(
+            role_schema_prompt=REVIEWER_SCHEMA_PROMPT,
+            project_context=project_context,
+        )
+
         messages = [
-            ChatMessage(role="system", content=REVIEWER_SYSTEM_PROMPT),
+            ChatMessage(role="system", content=system_prompt),
             ChatMessage(role="user", content=user_prompt),
         ]
 

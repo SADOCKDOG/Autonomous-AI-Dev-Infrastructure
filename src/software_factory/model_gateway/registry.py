@@ -1,6 +1,9 @@
 """Registro y orquestación central de proveedores (ModelGateway)."""
 
-import yaml
+try:
+    import yaml
+except ImportError:
+    yaml = None
 from pathlib import Path
 from software_factory.settings import settings
 from software_factory.model_gateway.base import (
@@ -59,7 +62,7 @@ class ModelGateway:
 
     def _load_agent_mappings(self, config_path: Path | None) -> None:
         path = config_path or (settings.base_dir / "config" / "agents.yaml")
-        if path.exists():
+        if path.exists() and yaml is not None:
             try:
                 with open(path, "r", encoding="utf-8") as f:
                     data = yaml.safe_load(f) or {}

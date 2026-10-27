@@ -15,13 +15,7 @@ class AnalystResult(BaseModel):
     functional_scope: list[str] = Field(default_factory=list)
 
 
-ANALYST_SYSTEM_PROMPT = """Eres el Agente Analista / Product Owner de una Software Factory de ingeniería rigurosa.
-Tu función es analizar la tarjeta de trabajo, clarificar requerimientos y generar una lista de criterios de aceptación verificables y ejecutables por el equipo de QA y desarrollo.
-
-REGLAS ESTRICTAS:
-1. No escribas código ejecutable final ni modifiques repositorios.
-2. Cada criterio de aceptación debe ser conciso, unívoco y comprobable mediante un test o inspección de diff.
-3. Debes responder EXCLUSIVAMENTE un bloque JSON válido con el siguiente formato:
+ANALYST_SCHEMA_PROMPT = """Debes responder EXCLUSIVAMENTE un bloque JSON válido con el siguiente formato:
 {
   "summary": "Resumen claro del requerimiento",
   "acceptance_criteria": [
@@ -33,8 +27,7 @@ REGLAS ESTRICTAS:
     "Módulo o componente afectado 1",
     "Módulo o componente afectado 2"
   ]
-}
-"""
+}"""
 
 
 class AnalystAgent(BaseAgent):
@@ -47,11 +40,17 @@ class AnalystAgent(BaseAgent):
         title: str,
         description: str,
         data_classification: str = "project_context",
+        project_context: str | None = None,
     ) -> AnalystResult:
         user_prompt = f"ID de Tarea: {task_id}\nTítulo: {title}\nDescripción: {description or 'Sin descripción adicional'}\n\nAnaliza los requerimientos y emite los criterios de aceptación en formato JSON."
 
+        system_prompt, _ = self.get_consolidated_system_prompt(
+            role_schema_prompt=ANALYST_SCHEMA_PROMPT,
+            project_context=project_context,
+        )
+
         messages = [
-            ChatMessage(role="system", content=ANALYST_SYSTEM_PROMPT),
+            ChatMessage(role="system", content=system_prompt),
             ChatMessage(role="user", content=user_prompt),
         ]
 

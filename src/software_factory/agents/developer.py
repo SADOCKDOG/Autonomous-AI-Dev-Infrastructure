@@ -14,19 +14,12 @@ class DeveloperResult(BaseModel):
     implementation_notes: str = ""
 
 
-DEVELOPER_SYSTEM_PROMPT = """Eres el Agente Desarrollador de la Software Factory.
-Tu trabajo es formular la implementación técnica y el mensaje de commit siguiendo estrictamente el plan arquitectónico y los criterios de aceptación.
-
-REGLAS:
-1. Sigue las convenciones de Conventional Commits (ej: feat(scope): ...).
-2. Limítate a los archivos especificados en el plan.
-3. Responde en formato JSON con la siguiente estructura:
+DEVELOPER_SCHEMA_PROMPT = """Responde en formato JSON con la siguiente estructura:
 {
   "commit_message": "feat(modulo): descripcion concisa del cambio",
   "files_modified": ["archivo1.py"],
   "implementation_notes": "Detalles de la solucion implementada"
-}
-"""
+}"""
 
 
 class DeveloperAgent(BaseAgent):
@@ -41,6 +34,8 @@ class DeveloperAgent(BaseAgent):
         plan_steps: list[str],
         worktree_path: Path,
         data_classification: str = "approved_code_context",
+        project_context: str | None = None,
+        design_tokens_context: str | None = None,
     ) -> DeveloperResult:
         steps_str = "\n".join(f"- {s}" for s in plan_steps)
         user_prompt = (
@@ -50,8 +45,14 @@ class DeveloperAgent(BaseAgent):
             f"Genera el resultado de desarrollo en formato JSON."
         )
 
+        system_prompt, _ = self.get_consolidated_system_prompt(
+            role_schema_prompt=DEVELOPER_SCHEMA_PROMPT,
+            project_context=project_context,
+            design_tokens_context=design_tokens_context,
+        )
+
         messages = [
-            ChatMessage(role="system", content=DEVELOPER_SYSTEM_PROMPT),
+            ChatMessage(role="system", content=system_prompt),
             ChatMessage(role="user", content=user_prompt),
         ]
 

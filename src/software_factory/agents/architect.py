@@ -14,14 +14,7 @@ class ArchitectPlan(BaseModel):
     technical_risks: list[str] = Field(default_factory=list)
 
 
-ARCHITECT_SYSTEM_PROMPT = """Eres el Agente Arquitecto de una Software Factory local.
-Tu responsabilidad es diseñar el plan técnico de cambios antes de que el Desarrollador modifique ningún archivo.
-
-REGLAS:
-1. Diseña cambios modulares, mínimos y desacoplados.
-2. Identifica con precisión los archivos afectados.
-3. Evalúa riesgos técnicos potenciales (compatibilidad, concurrencia, rendimiento).
-4. Responde EXCLUSIVAMENTE un bloque JSON con el siguiente formato:
+ARCHITECT_SCHEMA_PROMPT = """Responde EXCLUSIVAMENTE un bloque JSON con el siguiente formato:
 {
   "summary": "Resumen técnico de la solución propuesta",
   "affected_files": ["ruta/al/archivo1.py", "ruta/al/archivo2.py"],
@@ -32,8 +25,7 @@ REGLAS:
   "technical_risks": [
     "Riesgo 1: ..."
   ]
-}
-"""
+}"""
 
 
 class ArchitectAgent(BaseAgent):
@@ -46,6 +38,7 @@ class ArchitectAgent(BaseAgent):
         title: str,
         acceptance_criteria: list[str],
         data_classification: str = "project_context",
+        project_context: str | None = None,
     ) -> ArchitectPlan:
         criteria_str = "\n".join(f"- {c}" for c in acceptance_criteria)
         user_prompt = (
@@ -54,8 +47,13 @@ class ArchitectAgent(BaseAgent):
             f"Elabora el plan arquitectónico en formato JSON."
         )
 
+        system_prompt, _ = self.get_consolidated_system_prompt(
+            role_schema_prompt=ARCHITECT_SCHEMA_PROMPT,
+            project_context=project_context,
+        )
+
         messages = [
-            ChatMessage(role="system", content=ARCHITECT_SYSTEM_PROMPT),
+            ChatMessage(role="system", content=system_prompt),
             ChatMessage(role="user", content=user_prompt),
         ]
 
