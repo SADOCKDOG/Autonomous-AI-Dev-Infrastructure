@@ -84,6 +84,7 @@ Autonomous-AI-Dev-Infrastructure/
 │   ├── especificacion_arquitectura_v1_1.md
 │   ├── reporte_ejecucion_hitos.md
 │   ├── INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md
+│   ├── ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md
 │   └── piloto_livestock_manager/
 │       ├── AI_GOVERNANCE_RISK_COMPLIANCE.md
 │       ├── PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md
