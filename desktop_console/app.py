@@ -839,19 +839,23 @@ class DesktopConsoleApp(tk.Tk):
         agent_combo.pack(side="left", padx=4, pady=6)
 
         tk.Label(config_bar, text="Modelo FCC:", bg="#1E1E1E", fg="#CBD5E1", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(12, 4), pady=6)
-        self.session_model_var = tk.StringVar(value="claude-3-5-sonnet-20241022")
+        self.session_model_var = tk.StringVar(value="kilo/kilo-auto/free")
         model_combo = ttk.Combobox(
             config_bar,
             textvariable=self.session_model_var,
             values=[
+                "kilo/kilo-auto/free",
+                "kilo/openrouter/free",
+                "open_router/openrouter/free",
+                "openrouter/auto",
+                "deepseek/deepseek-chat",
                 "claude-3-5-sonnet-20241022",
                 "claude-3-haiku-20240307",
-                "deepseek-chat",
                 "gpt-4o",
                 "gpt-4o-mini",
             ],
             state="readonly",
-            width=26,
+            width=30,
         )
         model_combo.pack(side="left", padx=4, pady=6)
 
@@ -1451,7 +1455,7 @@ class DesktopConsoleApp(tk.Tk):
                 payload = {
                     "model": model_name,
                     "system": sys_msg,
-                    "max_tokens": 3000,
+                    "max_tokens": 4096,
                     "messages": [{"role": "user", "content": prompt}],
                 }
                 req = urllib.request.Request(
@@ -1467,8 +1471,12 @@ class DesktopConsoleApp(tk.Tk):
                             text_parts.append(block.get("text", ""))
                     answer = "\n".join(text_parts).strip()
                     if not answer:
-                        types = [b.get("type") for b in res.get("content", [])]
-                        answer = f"(Respuesta recibida sin bloques de texto directos. Tipos de bloque: {types})"
+                        has_thinking = any(b.get("type") in ("thinking", "redacted_thinking") for b in res.get("content", []))
+                        if has_thinking and res.get("stop_reason") == "max_tokens":
+                            answer = "(El modelo agoto el limite de tokens durante la fase de razonamiento interno previo a emitir texto. Se recomienda seleccionar 'kilo/kilo-auto/free' o un modelo con respuesta directa)."
+                        else:
+                            types = [b.get("type") for b in res.get("content", [])]
+                            answer = f"(Respuesta recibida sin bloques de texto directo. Bloques: {types})"
 
                 # Registrar en auditoria inmutable SQLite WAL
                 try:
