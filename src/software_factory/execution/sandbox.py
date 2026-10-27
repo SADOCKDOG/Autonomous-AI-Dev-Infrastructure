@@ -1,5 +1,8 @@
 """Ejecutor de comandos con allowlist estricta, timeouts y cuotas de salida."""
 
+import os
+import sys
+import shutil
 import shlex
 import time
 import asyncio
@@ -98,13 +101,24 @@ class CommandExecutor:
         run_timeout = timeout or self.default_timeout
         working_dir = str(cwd) if cwd else None
 
+        # Inyectar el entorno virtual activo al inicio de PATH
+        exec_env = os.environ.copy()
+        venv_bin = Path(sys.executable).parent
+        if venv_bin.exists():
+            exec_env["PATH"] = f"{venv_bin}{os.pathsep}{exec_env.get('PATH', '')}"
+
+        # Resolver ruta canónica del ejecutable en el PATH efectivo
+        bin_resolved = shutil.which(tokens[0], path=exec_env.get("PATH"))
+        cmd_tokens = [bin_resolved if bin_resolved else tokens[0]] + tokens[1:]
+
         start_time = time.perf_counter()
         try:
             process = await asyncio.create_subprocess_exec(
-                *tokens,
+                *cmd_tokens,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
                 cwd=working_dir,
+                env=exec_env,
             )
 
             try:

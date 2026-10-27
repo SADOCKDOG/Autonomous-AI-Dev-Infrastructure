@@ -29,6 +29,18 @@ class DataClassification(str, Enum):
     LOCAL_ONLY = "local_only"
     APPROVED_REMOTE = "approved_remote"
     RESTRICTED = "restricted"
+    PROJECT_CONTEXT = "project_context"
+    APPROVED_CODE_CONTEXT = "approved_code_context"
+    APPROVED_DIFF = "approved_diff"
+
+    @classmethod
+    def _missing_(cls, value):
+        val_str = str(value).lower()
+        if "restrict" in val_str:
+            return cls.RESTRICTED
+        if "local" in val_str:
+            return cls.LOCAL_ONLY
+        return cls.APPROVED_REMOTE
 
 
 class TaskCreate(BaseModel):
