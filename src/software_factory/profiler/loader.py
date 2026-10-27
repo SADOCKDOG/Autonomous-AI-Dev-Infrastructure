@@ -43,8 +43,14 @@ def auto_detect_profile(repo_dir: Path) -> ProjectProfile:
         or (repo_dir / "capacitor.config.ts").exists()
         or (repo_dir / "capacitor.config.json").exists()
     ):
+        has_porcine = (repo_dir / "tests" / "porcine-traceability.unit.test.js").exists()
         has_custom_runner = (repo_dir / "tests" / "unit" / "run_all.js").exists()
-        test_cmd = ["node", "tests/unit/run_all.js"] if has_custom_runner else ["npm", "test"]
+        if has_porcine:
+            test_cmd = ["node", "tests/porcine-traceability.unit.test.js"]
+        elif has_custom_runner:
+            test_cmd = ["node", "tests/unit/run_all.js"]
+        else:
+            test_cmd = ["npm", "test"]
         return ProjectProfile(
             project_name=project_name,
             archetype=ProjectArchetype.MOBILE_PWA,

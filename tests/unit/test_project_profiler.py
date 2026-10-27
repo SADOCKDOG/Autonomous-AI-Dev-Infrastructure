@@ -162,7 +162,7 @@ def test_actual_repository_profiles_if_present():
         maestro_profile = load_profile_from_repo(maestro_dir)
         assert maestro_profile.project_name == "LIVESTOCK-MANAGER"
         assert maestro_profile.archetype == ProjectArchetype.MOBILE_PWA
-        assert maestro_profile.test_command == ["node", "tests/unit/run_all.js"]
+        assert maestro_profile.test_command == ["node", "tests/porcine-traceability.unit.test.js"]
         assert "src-tauri/**" in maestro_profile.protected_paths
 
     # 3. livestock-desktop
