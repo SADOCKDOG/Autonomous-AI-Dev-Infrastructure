@@ -80,11 +80,21 @@ class ReviewerAgent(BaseAgent):
 
     def _parse_response(self, content: str) -> ReviewVerdict:
         cleaned = content.strip()
-        json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
-        raw_json = json_match.group(1) if json_match else cleaned
+        raw_json = cleaned
+        fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", cleaned)
+        if fence_match:
+            candidate = fence_match.group(1).strip()
+            if candidate.startswith("{") and candidate.endswith("}"):
+                raw_json = candidate
+
+        if not (raw_json.startswith("{") and raw_json.endswith("}")):
+            first_brace = cleaned.find("{")
+            last_brace = cleaned.rfind("}")
+            if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                raw_json = cleaned[first_brace:last_brace + 1]
 
         try:
-            data = json.loads(raw_json)
+            data = json.loads(raw_json, strict=False)
             return ReviewVerdict(
                 is_approved=data.get("is_approved", True),
                 has_secrets=False,

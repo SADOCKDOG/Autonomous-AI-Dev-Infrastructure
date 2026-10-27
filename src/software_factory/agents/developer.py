@@ -139,11 +139,24 @@ class DeveloperAgent(BaseAgent):
 
     def _parse_response(self, content: str, task_id: str, default_title: str) -> DeveloperResult:
         cleaned = content.strip()
-        json_match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", cleaned, re.DOTALL)
-        raw_json = json_match.group(1) if json_match else cleaned
+        
+        # 1. Intentar extraer de bloque de código markdown ```json ... ```
+        raw_json = cleaned
+        fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", cleaned)
+        if fence_match:
+            candidate = fence_match.group(1).strip()
+            if candidate.startswith("{") and candidate.endswith("}"):
+                raw_json = candidate
+
+        # 2. Si aún no empieza/termina con {}, buscar el primer { y el último }
+        if not (raw_json.startswith("{") and raw_json.endswith("}")):
+            first_brace = cleaned.find("{")
+            last_brace = cleaned.rfind("}")
+            if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+                raw_json = cleaned[first_brace:last_brace + 1]
 
         try:
-            data = json.loads(raw_json)
+            data = json.loads(raw_json, strict=False)
             files_raw = data.get("files", [])
             parsed_files: list[FileChange] = []
             for f in files_raw:
@@ -156,10 +169,12 @@ class DeveloperAgent(BaseAgent):
                 files=parsed_files,
                 implementation_notes=data.get("implementation_notes", ""),
             )
-        except Exception:
+        except Exception as exc:
+            import logging
+            logging.getLogger(__name__).warning("Fallo al parsear JSON del desarrollador: %s", exc)
             return DeveloperResult(
                 commit_message=f"feat({task_id.lower()}): {default_title.lower()}",
                 files_modified=[],
                 files=[],
-                implementation_notes="Implementación completada según plan.",
+                implementation_notes=f"Implementación completada según plan (parseo no estructurado: {exc}).",
             )
