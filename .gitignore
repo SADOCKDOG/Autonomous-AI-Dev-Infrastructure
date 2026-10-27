@@ -35,7 +35,10 @@ htmlcov/
 
 # Local Databases & Logs
 *.db
+*.db-shm
+*.db-wal
 *.sqlite3
+data/
 logs/
 *.log
 

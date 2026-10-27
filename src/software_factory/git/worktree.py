@@ -63,6 +63,18 @@ class WorktreeManager:
             res = await self.executor.execute(["git", "diff"], cwd=worktree_path)
         return res.stdout
 
+    async def get_changed_files(self, task_id: str, base_branch: str = "master") -> list[str]:
+        """Obtiene la lista de rutas de archivos modificados frente a la rama base."""
+        worktree_path = self.get_worktree_path(task_id)
+        if not worktree_path.exists():
+            return []
+
+        res = await self.executor.execute(["git", "diff", "--name-only", f"{base_branch}...HEAD"], cwd=worktree_path)
+        if res.exit_code != 0:
+            res = await self.executor.execute(["git", "diff", "--name-only"], cwd=worktree_path)
+
+        return [line.strip() for line in res.stdout.splitlines() if line.strip()]
+
     async def scan_diff_for_secrets(self, task_id: str, base_branch: str = "master") -> list[SecretFinding]:
         """Escanea el diff de la tarea buscando cualquier credencial antes de revisión."""
         diff_text = await self.get_diff(task_id, base_branch=base_branch)
