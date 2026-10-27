@@ -1013,8 +1013,18 @@ class DesktopConsoleApp(tk.Tk):
             import urllib.request
             try:
                 url = "http://127.0.0.1:8082/v1/models"
-                req = urllib.request.Request(url, headers={"Authorization": "Bearer fake_or_token"})
-                with urllib.request.urlopen(req, timeout=2.0) as resp:
+                fcc_key = "fake_or_token"
+                env_file = Path.home() / ".fcc" / ".env"
+                if env_file.exists():
+                    try:
+                        for line in env_file.read_text(encoding="utf-8").splitlines():
+                            if line.startswith("FCC_API_KEY="):
+                                fcc_key = line.split("=", 1)[1].strip()
+                                break
+                    except Exception:
+                        pass
+                req = urllib.request.Request(url, headers={"Authorization": f"Bearer {fcc_key}"})
+                with urllib.request.urlopen(req, timeout=2.5) as resp:
                     data = json.loads(resp.read().decode("utf-8"))
                     models_count = len(data.get("data", []))
                     self.log_service_message(f"FCC Server responde OK: {models_count} modelos disponibles.")
