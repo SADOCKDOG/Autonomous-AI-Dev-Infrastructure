@@ -1907,7 +1907,7 @@ class DesktopConsoleApp(tk.Tk):
                 incidents_rows = conn.execute("SELECT id, title, severity, category, status, created_at FROM incidents ORDER BY id DESC LIMIT 10").fetchall()
 
                 # Ultimas 10 firmas humanas
-                human_approvals = conn.execute("SELECT task_id, actor, details, created_at FROM audit_logs WHERE action IN ('HUMAN_APPROVAL_RECORDED', 'INCIDENT_RESOLVED') ORDER BY id DESC LIMIT 10").fetchall()
+                human_approvals = conn.execute("SELECT task_id, actor, details, created_at FROM audit_logs WHERE action IN ('HUMAN_APPROVAL_RECORDED', 'HUMAN_APPROVAL_GRANTED', 'INCIDENT_RESOLVED') ORDER BY id DESC LIMIT 10").fetchall()
 
             doc = []
             doc.append("# INFORME DE AUDITORIA Y CUMPLIMIENTO AI-GRC")
