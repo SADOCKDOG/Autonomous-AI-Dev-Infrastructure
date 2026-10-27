@@ -29,7 +29,33 @@ class WorktreeManager:
         clean_id = task_id.lower().replace(":", "-")
         return f"feat/{clean_id}"
 
-    async def create_worktree(self, task_id: str, base_branch: str = "master") -> Path:
+    async def resolve_base_branch(self, requested_branch: str | None = None) -> str:
+        """Determina la rama base efectiva comprobando el perfil declarativo y git."""
+        if requested_branch:
+            res = await self.executor.execute(["git", "rev-parse", "--verify", requested_branch], cwd=self.repo_dir)
+            if res.exit_code == 0:
+                return requested_branch
+
+        # Intentar consultar el perfil declarativo del repositorio
+        try:
+            from software_factory.profiler.loader import load_profile_from_repo
+            profile = load_profile_from_repo(self.repo_dir)
+            if profile.base_branch:
+                res_prof = await self.executor.execute(["git", "rev-parse", "--verify", profile.base_branch], cwd=self.repo_dir)
+                if res_prof.exit_code == 0:
+                    return profile.base_branch
+        except Exception:
+            pass
+
+        # Fallback a ramas convencionales según existan en el repositorio
+        for candidate in ["main", "master"]:
+            res_cand = await self.executor.execute(["git", "rev-parse", "--verify", candidate], cwd=self.repo_dir)
+            if res_cand.exit_code == 0:
+                return candidate
+
+        return "HEAD"
+
+    async def create_worktree(self, task_id: str, base_branch: str | None = None) -> Path:
         """Crea una rama y un directorio de worktree aislado para la tarea."""
         self.worktrees_dir.mkdir(parents=True, exist_ok=True)
         worktree_path = self.get_worktree_path(task_id)
@@ -38,8 +64,10 @@ class WorktreeManager:
         if worktree_path.exists():
             return worktree_path
 
+        effective_base = await self.resolve_base_branch(base_branch)
+
         # Intentar crear rama y worktree
-        cmd = ["git", "worktree", "add", "-b", branch_name, str(worktree_path), base_branch]
+        cmd = ["git", "worktree", "add", "-b", branch_name, str(worktree_path), effective_base]
         res = await self.executor.execute(cmd, cwd=self.repo_dir)
 
         if res.exit_code != 0:
@@ -51,31 +79,33 @@ class WorktreeManager:
 
         return worktree_path
 
-    async def get_diff(self, task_id: str, base_branch: str = "master") -> str:
+    async def get_diff(self, task_id: str, base_branch: str | None = None) -> str:
         """Obtiene el diff acumulado del worktree frente a la rama base."""
         worktree_path = self.get_worktree_path(task_id)
         if not worktree_path.exists():
             return ""
 
-        res = await self.executor.execute(["git", "diff", f"{base_branch}...HEAD"], cwd=worktree_path)
+        effective_base = await self.resolve_base_branch(base_branch)
+        res = await self.executor.execute(["git", "diff", f"{effective_base}...HEAD"], cwd=worktree_path)
         if res.exit_code != 0:
             # Si aún no hay commits, mostrar diff del working directory
             res = await self.executor.execute(["git", "diff"], cwd=worktree_path)
         return res.stdout
 
-    async def get_changed_files(self, task_id: str, base_branch: str = "master") -> list[str]:
+    async def get_changed_files(self, task_id: str, base_branch: str | None = None) -> list[str]:
         """Obtiene la lista de rutas de archivos modificados frente a la rama base."""
         worktree_path = self.get_worktree_path(task_id)
         if not worktree_path.exists():
             return []
 
-        res = await self.executor.execute(["git", "diff", "--name-only", f"{base_branch}...HEAD"], cwd=worktree_path)
+        effective_base = await self.resolve_base_branch(base_branch)
+        res = await self.executor.execute(["git", "diff", "--name-only", f"{effective_base}...HEAD"], cwd=worktree_path)
         if res.exit_code != 0:
             res = await self.executor.execute(["git", "diff", "--name-only"], cwd=worktree_path)
 
         return [line.strip() for line in res.stdout.splitlines() if line.strip()]
 
-    async def scan_diff_for_secrets(self, task_id: str, base_branch: str = "master") -> list[SecretFinding]:
+    async def scan_diff_for_secrets(self, task_id: str, base_branch: str | None = None) -> list[SecretFinding]:
         """Escanea el diff de la tarea buscando cualquier credencial antes de revisión."""
         diff_text = await self.get_diff(task_id, base_branch=base_branch)
         return SecretScanner.scan_diff(diff_text)
