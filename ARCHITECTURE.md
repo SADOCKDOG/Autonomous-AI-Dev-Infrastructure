@@ -83,3 +83,10 @@ La infraestructura soporta inferencia empresarial auditada mediante Microsoft Az
 - Soberania territorial bajo el marco del EU Data Boundary (regiones `spaincentral` y `westeurope`).
 - Mapeo de despliegues: `sdogfarm-gpt4o` (arquitectura y revision), `sdogfarm-phi4` (analisis y desarrollo) y `sdogfarm-gpt4o-mini` (pruebas y documentacion).
 - Configuracion declarativa: [config/azure_foundry_sdogfarm.yaml](config/azure_foundry_sdogfarm.yaml) y guia tecnica en [docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md](docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md).
+
+## 8. Consola de Gestion Integral de Escritorio (Windows Desktop)
+La supervision operativa y el gobierno AI-GRC disponen de una aplicacion grafica nativa para Windows 11 mantenida en el repositorio dedicado:
+- **Repositorio GitHub:** [Console-AI-Dev-Infrastructure](https://github.com/SADOCKDOG/Console-AI-Dev-Infrastructure)
+- **Repositorio Local:** `C:\Users\yo\repo\AutonomousDevConsole`
+- **Capacidades:** Telemetria en tiempo real de servicios (:8082, :8000, SQLite WAL, Foundry), tablero Kanban con aprobacion humana obligatoria, gestor de incidencias normativas y exportador forense de auditoria en Markdown.
+- **Documentacion y Manual:** [docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md](docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md).

@@ -4,6 +4,8 @@
 **Ambito:** Consola Nativa de Escritorio para Operadores y Responsables de Cumplimiento AI-GRC  
 **Version:** 1.0  
 **Fecha:** 27 de octubre de 2026  
+**Repositorio GitHub Dedicado:** [Console-AI-Dev-Infrastructure](https://github.com/SADOCKDOG/Console-AI-Dev-Infrastructure)  
+**Ruta Local:** `C:\Users\yo\repo\AutonomousDevConsole`  
 **Lanzador Rapido:** [run_console.bat](../../run_console.bat)  
 
 ---

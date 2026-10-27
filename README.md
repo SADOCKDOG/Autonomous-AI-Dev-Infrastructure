@@ -234,10 +234,13 @@ Este piloto establece e implementa de manera estricta una funcion de **Gobierno,
 
 ## 8. Consola de Gestion Integral de Escritorio para Windows
 
-La infraestructura incorpora una aplicacion grafica nativa para Windows 11 disenada para la monitorizacion y control centralizado:
+La infraestructura cuenta con un repositorio y aplicacion de escritorio nativa dedicada para Windows 11 disenada para la monitorizacion y control centralizado:
+- **Repositorio Dedicado en GitHub:** [Console-AI-Dev-Infrastructure](https://github.com/SADOCKDOG/Console-AI-Dev-Infrastructure)
+- **Repositorio Local:** `C:\Users\yo\repo\AutonomousDevConsole`
 - **Lanzador Rapido:** Doble clic sobre [run_console.bat](run_console.bat) o ejecucion via `python desktop_console\app.py`.
 - **Modulo 1 (Servicios y Salud):** Monitorizacion y telemetria en vivo de FCC Server (8082), Backend FastAPI (8000), SQLite WAL, Microsoft Foundry Sdog Farm y motor de Sandbox.
 - **Modulo 2 (Proyectos y Kanban):** Visualizacion interactiva del ciclo de vida de tareas, creacion de nuevas historias tecnicas, expediente arquitectonico y barrera de aprobacion humana (`ApprovalManager`).
 - **Modulo 3 (Gestor de Incidencias):** Seguimiento y resolucion de anomalías operacionales, alertas de seguridad de `SecretScanner` y bloqueos por politicas AI-GRC.
 - **Modulo 4 (Auditoria y Eventos):** Flujo inmutable de transiciones y generador exportador de informes de cumplimiento formal en Markdown/JSON.
 - **Manual de Operacion:** [docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md](docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md).
+- **Guia de Validacion:** Consulte [docs/GUIA_VALIDACION.md](https://github.com/SADOCKDOG/Console-AI-Dev-Infrastructure/blob/main/docs/GUIA_VALIDACION.md) para el protocolo formal de pruebas y certificacion.
