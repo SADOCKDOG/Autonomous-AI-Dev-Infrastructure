@@ -78,7 +78,12 @@ Autonomous-AI-Dev-Infrastructure/
 ├── docs/
 │   ├── runbook.md
 │   ├── especificacion_arquitectura_v1_1.md
-│   └── reporte_ejecucion_hitos.md
+│   ├── reporte_ejecucion_hitos.md
+│   └── piloto_livestock_manager/
+│       ├── AI_GOVERNANCE_RISK_COMPLIANCE.md
+│       ├── PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md
+│       ├── CONFIG_LIVESTOCK_MANAGER.yaml
+│       └── REPORTE_SIMULACION_Y_EVIDENCIAS.md
 ├── src/software_factory/
 │   ├── __init__.py
 │   ├── settings.py
@@ -126,7 +131,8 @@ Autonomous-AI-Dev-Infrastructure/
 │       └── worktree.py
 ├── scripts/
 │   ├── verify_live_fcc.py
-│   └── verify_live_orchestration.py
+│   ├── verify_live_orchestration.py
+│   └── simulate_livestock_pilot.py
 └── tests/
     ├── conftest.py
     ├── unit/
@@ -178,3 +184,32 @@ pytest -v
 ## 6. Manual Operativo
 
 Para instrucciones de instalacion, inicio de servicios, politicas de respaldo en caliente, parada de emergencia y configuracion de proveedores remotos, consultar [docs/runbook.md](docs/runbook.md).
+
+---
+
+## 7. Piloto Tecnico y Gobernanza AI-GRC (Livestock Manager)
+
+La infraestructura ha sido validada mediante un piloto integral end-to-end basado en el proyecto agropecuario **Livestock Manager** (PWA offline-first con Capacitor en Android, Tauri en Windows y backend Cloudflare).
+
+Este piloto establece e implementa de manera estricta una funcion de **Gobierno, Riesgos y Cumplimiento de Inteligencia Artificial (AI-GRC)**:
+
+1. **Marco de AI-GRC y Taxonomia:**
+   - Define el rol, alcance y límites operacionales de 9 agentes especializados (Project Manager, Full-Stack Capacitor, Tauri Desktop, Backend, QA/DevOps, Auditor de Seguridad, Oficial de Cumplimiento Normativo, Documentador y Soporte).
+   - Clasificacion formal de 5 niveles de autonomia (L1 a L5), prohibiendo la promocion desasistida a produccion o ramas protegidas.
+   - Especificacion completa: [docs/piloto_livestock_manager/AI_GOVERNANCE_RISK_COMPLIANCE.md](docs/piloto_livestock_manager/AI_GOVERNANCE_RISK_COMPLIANCE.md).
+
+2. **Blueprint de Ejecucion del Piloto:**
+   - Diseno de la epica piloto: Bloqueo preventivo de venta de leche bajo tratamiento sanitario segun el Real Decreto 787/2023.
+   - Trazabilidad determinista por estados Kanban (`BACKLOG` -> `READY` -> `PLANNING` -> `IN_PROGRESS` -> `TESTING` -> `REVIEW` -> `DONE`).
+   - Documento tecnico: [docs/piloto_livestock_manager/PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md](docs/piloto_livestock_manager/PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md).
+
+3. **Configuracion Declarativa de la Factoria:**
+   - Asignacion de modelos, allowlist de binarios sandbox (`node`, `npm`, `npx`, `pytest`, `cargo`), parametros de red y politicas de retencion.
+   - Fichero: [docs/piloto_livestock_manager/CONFIG_LIVESTOCK_MANAGER.yaml](docs/piloto_livestock_manager/CONFIG_LIVESTOCK_MANAGER.yaml).
+
+4. **Simulacion y Evidencias de Validacion:**
+   - **Intercepcion de Fuga de Datos:** Bloqueo automatico a nivel de gateway ante solicitudes con clasificacion `restricted` (datos de explotacion REGA y coordenadas GPS).
+   - **Ciclo Multiagente Normativo:** Derivacion automatica de 6 criterios de aceptacion rigurosos de seguridad alimentaria sin intervencion manual.
+   - **Barrera de Aprobacion Humana:** Transicion controlada a `DONE` tras autorizacion formal auditada del Director Tecnico.
+   - Informe de ejecucion y trazas: [docs/piloto_livestock_manager/REPORTE_SIMULACION_Y_EVIDENCIAS.md](docs/piloto_livestock_manager/REPORTE_SIMULACION_Y_EVIDENCIAS.md).
+   - Script ejecutable: [scripts/simulate_livestock_pilot.py](scripts/simulate_livestock_pilot.py).
