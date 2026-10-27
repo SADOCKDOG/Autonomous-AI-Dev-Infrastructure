@@ -65,6 +65,9 @@ El nucleo de control, logica de negocio, persistencia y ejecucion residen exclus
 
 ```text
 Autonomous-AI-Dev-Infrastructure/
+├── .github/
+│   └── workflows/
+│       └── ci.yml
 ├── README.md
 ├── ARCHITECTURE.md
 ├── SECURITY.md
@@ -83,6 +86,7 @@ Autonomous-AI-Dev-Infrastructure/
 │       ├── AI_GOVERNANCE_RISK_COMPLIANCE.md
 │       ├── PILOT_BLUEPRINT_LIVESTOCK_MANAGER.md
 │       ├── CONFIG_LIVESTOCK_MANAGER.yaml
+│       ├── DATA_CONTRACT_LIVESTOCK.json
 │       └── REPORTE_SIMULACION_Y_EVIDENCIAS.md
 ├── src/software_factory/
 │   ├── __init__.py
@@ -167,9 +171,9 @@ $$\text{BACKLOG} \longrightarrow \text{READY} \longrightarrow \text{PLANNING} \l
 
 ## 5. Bateria de Verificacion Automatizada
 
-El repositorio cuenta con 34 pruebas automatizadas estructuradas:
+El repositorio cuenta con 37 pruebas automatizadas estructuradas:
 - **Unitarias (29 tests):** Validacion de esquemas, persistencia SQLite, resolucion de proveedores, aislamiento Git, allowlist de sandbox, escaneo de secretos y logica de agentes.
-- **Integracion y Aceptacion (5 tests):** Modo degradado ante caidas de proveedores, aislamiento estricto `local_only`, recuperacion tras reinicio, auditoria libre de secretos y flujo end-to-end con aprobacion humana.
+- **Integracion y Aceptacion (8 tests):** Modo degradado ante caidas de proveedores, aislamiento estricto `local_only`, recuperacion tras reinicio, auditoria libre de secretos, flujo end-to-end con aprobacion humana y verificacion de politicas de gobernanza AI-GRC para el piloto Livestock Manager.
 
 Ejecucion de pruebas:
 ```bash

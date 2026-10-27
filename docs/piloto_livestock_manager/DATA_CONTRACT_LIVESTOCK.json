@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "LivestockManagerDataContract",
+  "description": "Contrato de clasificacion de datos y fronteras AI-GRC para el dominio Livestock Manager",
+  "data_classifications": {
+    "local_only": {
+      "description": "Datos que bajo ninguna circunstancia pueden salir del dispositivo o entorno local hacia modelos remotos",
+      "fields": [
+        "farm.rega_code",
+        "farm.cadastral_reference",
+        "farm.gps_latitude",
+        "farm.gps_longitude",
+        "farm.owner_nif_cif",
+        "farm.owner_name",
+        "farm.owner_phone",
+        "farm.digital_certificates",
+        "animal.individual_identification_code",
+        "movement_guide.transport_registration_plate",
+        "movement_guide.carrier_nif"
+      ],
+      "enforcement": "ModelPolicyEngine intercepta peticiones con clasificacion 'local_only' y bloquea el envio a proveedores de inferencia remotos."
+    },
+    "restricted": {
+      "description": "Datos de operacion zoosanitaria que requieren aprobacion humana explicita antes de cualquier transmision",
+      "fields": [
+        "veterinary_treatment.medication_commercial_name",
+        "veterinary_treatment.batch_number",
+        "veterinary_treatment.prescription_official_number",
+        "veterinary_treatment.veterinarian_collegiate_number",
+        "official_inspection.inspector_id",
+        "official_inspection.findings_summary"
+      ],
+      "enforcement": "ModelPolicyEngine requiere metadato human_approved=True en la peticion."
+    },
+    "approved_remote": {
+      "description": "Entidades anonimizadas, logica pura de calculo, esquemas TypeScript y modelos matematicos aptos para procesamiento con LLMs",
+      "fields": [
+        "rules.withdrawal_days_milk",
+        "rules.withdrawal_days_meat",
+        "rules.validation_logic_state_machine",
+        "domain_models.schema_definitions",
+        "ui_components.typescript_interfaces",
+        "automated_tests.mock_payloads"
+      ],
+      "enforcement": "Permitido hacia proveedores configurados en el Model Gateway (FCC / Azure AI Foundry)."
+    }
+  }
+}
