@@ -62,7 +62,7 @@ class DeveloperAgent(BaseAgent):
                 if target_f.exists() and target_f.is_file():
                     try:
                         text = target_f.read_text(encoding="utf-8", errors="ignore")
-                        snippet = text if len(text) <= 12000 else text[:12000] + "\n... [truncado]"
+                        snippet = text if len(text) <= 40000 else text[:40000] + "\n... [truncado]"
                         existing_context_blocks.append(
                             f"--- INICIO ARCHIVO PREEXISTENTE: {rel} ---\n{snippet}\n--- FIN ARCHIVO PREEXISTENTE ---"
                         )
