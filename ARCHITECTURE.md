@@ -67,3 +67,19 @@ Para garantizar la reproducibilidad y evitar condiciones de carrera:
 - Cada tarjeta activa despliega un directorio Git Worktree en `.worktrees/task-xxx`.
 - Los cambios se confirman exclusivamente en la rama de la tarea (`feat/task-xxx`).
 - Tras la revision y aprobacion final, el worktree se desmonta y se ejecuta `git worktree prune` para optimizar el almacenamiento.
+
+## 6. Taxonomia y Coordinacion Multiagente (Equipo de 9 Agentes)
+El sistema soporta una organizacion profesional completa dividida en 4 capas funcionales:
+1. **Capa de Direccion y Gobierno:** `agent_pm` (Project Manager) y `agent_compliance` (Oficial de Cumplimiento Normativo / Auditor Legal).
+2. **Capa de Arquitectura y Diseno:** `agent_architect` (Arquitecto de Plataforma y Director UI/UX Bento Grid).
+3. **Capa de Desarrollo Especializado:** `agent_dev_frontend` (Full-Stack / PWA), `agent_dev_android` (Capacitor 7), `agent_dev_windows` (Tauri v2 / Rust) y `agent_dev_backend` (Cloudflare Workers).
+4. **Capa de Calidad, Seguridad y Soporte:** `agent_qa_devops` (QA Automation y Sandbox), `agent_security` (Auditor de Secretos y Privacidad) y `agent_docs_support` (Documentador Tecnico y Soporte).
+
+Para la especificacion completa de responsabilidades y flujo de transiciones, consultar [docs/ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md](docs/ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md).
+
+## 7. Pasarela Cloud Gobernada (Microsoft Foundry en Sdog Farm)
+La infraestructura soporta inferencia empresarial auditada mediante Microsoft Azure AI Foundry bajo el tenant `sadogfarm.onmicrosoft.com`:
+- Autenticacion OAuth 2.0 con Microsoft Entra ID (Service Principal y gestion de tokens JWT).
+- Soberania territorial bajo el marco del EU Data Boundary (regiones `spaincentral` y `westeurope`).
+- Mapeo de despliegues: `sdogfarm-gpt4o` (arquitectura y revision), `sdogfarm-phi4` (analisis y desarrollo) y `sdogfarm-gpt4o-mini` (pruebas y documentacion).
+- Configuracion declarativa: [config/azure_foundry_sdogfarm.yaml](config/azure_foundry_sdogfarm.yaml) y guia tecnica en [docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md](docs/INTEGRACION_MICROSOFT_FOUNDRY_SDOGFARM.md).
