@@ -130,3 +130,26 @@ def check_protected_paths(profile: ProjectProfile, changed_files: list[str]) -> 
                 break
 
     return violations
+
+
+def resolve_repo_path(target_repo: str | None = None) -> Path:
+    """Resuelve la ruta absoluta del repositorio objetivo, admitiendo nombres de repos hermanos o rutas absolutas."""
+    from software_factory.settings import settings
+    if not target_repo or str(target_repo).strip() in ("", "AutonomousDev", "self", "local"):
+        return settings.base_dir
+
+    p = Path(target_repo)
+    if p.is_absolute() and p.exists():
+        return p
+
+    # Búsqueda en directorio de repositorios hermano (ej: C:\Users\yo\repo\LIVESTOCK-MANAGER)
+    sibling = settings.base_dir.parent / target_repo
+    if sibling.exists():
+        return sibling
+
+    # Búsqueda como subdirectorio
+    subdir = settings.base_dir / target_repo
+    if subdir.exists():
+        return subdir
+
+    return settings.base_dir

@@ -14,7 +14,7 @@ from software_factory.git.worktree import WorktreeManager
 from software_factory.kanban.service import KanbanService
 from software_factory.kanban.schema import TaskStatus, TaskTransitionRequest
 from software_factory.persistence.database import get_db
-from software_factory.profiler.loader import load_profile_from_repo, check_protected_paths
+from software_factory.profiler.loader import load_profile_from_repo, check_protected_paths, resolve_repo_path
 
 
 # --- 1. Nodos de Agentes ---
@@ -23,11 +23,16 @@ async def analyst_node(state: FactoryState) -> FactoryState:
     task_id = state["task_id"]
     agent = AnalystAgent()
     try:
+        repo_path = resolve_repo_path(state.get("target_repo"))
+        profile = load_profile_from_repo(repo_path)
+        project_context = f"Proyecto: {profile.project_name} | Arquetipo: {profile.archetype.value} | Base: {profile.base_branch}"
+
         result = await agent.analyze_task(
             task_id=task_id,
             title=state.get("title", ""),
             description=state.get("description", ""),
             data_classification=state.get("data_classification", "project_context"),
+            project_context=project_context,
         )
         if not result.acceptance_criteria:
             return {**state, "error_message": "El analista no generó criterios válidos."}
@@ -61,11 +66,16 @@ async def architect_node(state: FactoryState) -> FactoryState:
     task_id = state["task_id"]
     agent = ArchitectAgent()
     try:
+        repo_path = resolve_repo_path(state.get("target_repo"))
+        profile = load_profile_from_repo(repo_path)
+        project_context = f"Proyecto: {profile.project_name} | Arquetipo: {profile.archetype.value} | Base: {profile.base_branch}"
+
         plan = await agent.plan_task(
             task_id=task_id,
             title=state.get("title", ""),
             acceptance_criteria=state.get("acceptance_criteria", []),
             data_classification=state.get("data_classification", "project_context"),
+            project_context=project_context,
         )
         KanbanService.transition_task(
             task_id,
@@ -88,10 +98,17 @@ async def architect_node(state: FactoryState) -> FactoryState:
 
 async def developer_node(state: FactoryState) -> FactoryState:
     task_id = state["task_id"]
-    wt_manager = WorktreeManager()
+    repo_path = resolve_repo_path(state.get("target_repo"))
+    wt_manager = WorktreeManager(repo_dir=repo_path)
     agent = DeveloperAgent()
     try:
         worktree_path = await wt_manager.create_worktree(task_id)
+        profile = load_profile_from_repo(worktree_path)
+        project_context = f"Proyecto: {profile.project_name} | Arquetipo: {profile.archetype.value} | Base: {profile.base_branch}"
+
+        tokens_ctx = None
+        if profile.design_tokens_path and (worktree_path / profile.design_tokens_path).exists():
+            tokens_ctx = (worktree_path / profile.design_tokens_path).read_text(encoding="utf-8", errors="ignore")[:3000]
 
         # Actualizar ruta de worktree en la BD
         with get_db() as conn:
@@ -118,6 +135,8 @@ async def developer_node(state: FactoryState) -> FactoryState:
             worktree_path=worktree_path,
             acceptance_criteria=state.get("acceptance_criteria", []),
             data_classification=state.get("data_classification", "approved_code_context"),
+            project_context=project_context,
+            design_tokens_context=tokens_ctx,
         )
 
         return {
@@ -133,7 +152,8 @@ async def developer_node(state: FactoryState) -> FactoryState:
 async def uiux_node(state: FactoryState) -> FactoryState:
     """Nodo auditor de ergonomía y conformidad de tokens de interfaz (Modo Asesor)."""
     task_id = state["task_id"]
-    wt_manager = WorktreeManager()
+    repo_path = resolve_repo_path(state.get("target_repo"))
+    wt_manager = WorktreeManager(repo_dir=repo_path)
     agent = UIUXAgent()
     try:
         worktree_path = wt_manager.get_worktree_path(task_id)
@@ -167,7 +187,8 @@ async def uiux_node(state: FactoryState) -> FactoryState:
 
 async def tester_node(state: FactoryState) -> FactoryState:
     task_id = state["task_id"]
-    wt_manager = WorktreeManager()
+    repo_path = resolve_repo_path(state.get("target_repo"))
+    wt_manager = WorktreeManager(repo_dir=repo_path)
     agent = TesterAgent()
     try:
         worktree_path = wt_manager.get_worktree_path(task_id)
@@ -201,7 +222,8 @@ async def tester_node(state: FactoryState) -> FactoryState:
 
 async def reviewer_node(state: FactoryState) -> FactoryState:
     task_id = state["task_id"]
-    wt_manager = WorktreeManager()
+    repo_path = resolve_repo_path(state.get("target_repo"))
+    wt_manager = WorktreeManager(repo_dir=repo_path)
     agent = ReviewerAgent()
     try:
         worktree_path = wt_manager.get_worktree_path(task_id)
@@ -359,6 +381,7 @@ async def run_analyst_flow(task_id: str) -> FactoryState:
         "status": task.status.value,
         "data_classification": task.data_classification.value,
         "acceptance_criteria": task.acceptance_criteria,
+        "target_repo": task.target_repo,
     }
     res = await analyst_node(state)
     if res.get("error_message"):
@@ -376,6 +399,7 @@ async def run_full_cycle(task_id: str) -> FactoryState:
         "status": task.status.value,
         "data_classification": task.data_classification.value,
         "acceptance_criteria": task.acceptance_criteria,
+        "target_repo": task.target_repo,
         "iteration_count": 0,
         "max_iterations": 5,
         "error_message": None,

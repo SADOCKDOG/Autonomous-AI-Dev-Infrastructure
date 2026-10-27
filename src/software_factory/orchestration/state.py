@@ -10,6 +10,7 @@ class FactoryState(TypedDict, total=False):
     description: str
     status: str
     data_classification: str
+    target_repo: str | None
     acceptance_criteria: list[str]
     analyst_summary: str | None
     suggested_priority: str | None

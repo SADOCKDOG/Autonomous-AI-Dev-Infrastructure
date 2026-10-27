@@ -30,8 +30,8 @@ class KanbanService:
                 """
                 INSERT INTO tasks (
                     id, title, description, status, priority, data_classification,
-                    acceptance_criteria
-                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                    acceptance_criteria, target_repo
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     task_id,
@@ -41,6 +41,7 @@ class KanbanService:
                     task_in.priority.value,
                     task_in.data_classification.value,
                     json.dumps(task_in.acceptance_criteria),
+                    task_in.target_repo,
                 ),
             )
             # Registrar evento inicial
@@ -72,6 +73,7 @@ class KanbanService:
                 assigned_agent=row["assigned_agent"],
                 branch_name=row["branch_name"],
                 worktree_path=row["worktree_path"],
+                target_repo=row["target_repo"] if "target_repo" in row.keys() else None,
                 created_at=str(row["created_at"]),
                 updated_at=str(row["updated_at"]),
             )
@@ -99,6 +101,7 @@ class KanbanService:
                     assigned_agent=r["assigned_agent"],
                     branch_name=r["branch_name"],
                     worktree_path=r["worktree_path"],
+                    target_repo=r["target_repo"] if "target_repo" in r.keys() else None,
                     created_at=str(r["created_at"]),
                     updated_at=str(r["updated_at"]),
                 )

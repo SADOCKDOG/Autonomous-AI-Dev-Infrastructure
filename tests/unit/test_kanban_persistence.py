@@ -26,6 +26,23 @@ def test_create_task_and_persistence(client: TestClient):
     assert get_res.json()["title"] == payload["title"]
 
 
+def test_create_task_with_target_repo(client: TestClient):
+    payload = {
+        "title": "Tarea para MAESTRO ANDROID",
+        "description": "Verificar integración con repositorio cliente",
+        "target_repo": "LIVESTOCK-MANAGER",
+        "acceptance_criteria": ["Criterio 1"],
+    }
+    response = client.post("/api/v1/tasks", json=payload)
+    assert response.status_code == 201
+    task = response.json()
+    assert task["target_repo"] == "LIVESTOCK-MANAGER"
+
+    get_res = client.get(f"/api/v1/tasks/{task['id']}")
+    assert get_res.status_code == 200
+    assert get_res.json()["target_repo"] == "LIVESTOCK-MANAGER"
+
+
 def test_transition_to_ready_requires_acceptance_criteria(client: TestClient):
     # Crear tarea sin criterios
     payload = {

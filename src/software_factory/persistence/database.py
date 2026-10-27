@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     assigned_agent TEXT,
     branch_name TEXT,
     worktree_path TEXT,
+    target_repo TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

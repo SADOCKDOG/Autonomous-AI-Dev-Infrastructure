@@ -49,6 +49,7 @@ class TaskCreate(BaseModel):
     priority: TaskPriority = Field(default=TaskPriority.MEDIUM)
     data_classification: DataClassification = Field(default=DataClassification.APPROVED_REMOTE)
     acceptance_criteria: list[str] = Field(default_factory=list)
+    target_repo: str | None = Field(default=None)
 
 
 class TaskTransitionRequest(BaseModel):
@@ -69,5 +70,6 @@ class TaskResponse(BaseModel):
     assigned_agent: str | None
     branch_name: str | None
     worktree_path: str | None
+    target_repo: str | None = None
     created_at: str
     updated_at: str
