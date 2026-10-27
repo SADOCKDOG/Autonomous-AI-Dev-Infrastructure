@@ -1,0 +1,16 @@
+{
+  "project_name": "AutonomousDev",
+  "archetype": "python_service",
+  "base_branch": "main",
+  "test_command": ["pytest", "-q"],
+  "lint_command": ["ruff", "check", "."],
+  "uiux_mode": "none",
+  "protected_paths": [
+    "policies/**",
+    ".github/**"
+  ],
+  "metadata": {
+    "engine": "LangGraph + FastAPI + SQLite",
+    "compliance": "ISO/IEC 42001"
+  }
+}

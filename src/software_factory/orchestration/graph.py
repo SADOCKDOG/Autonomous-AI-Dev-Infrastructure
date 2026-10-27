@@ -13,6 +13,7 @@ from software_factory.git.worktree import WorktreeManager
 from software_factory.kanban.service import KanbanService
 from software_factory.kanban.schema import TaskStatus, TaskTransitionRequest
 from software_factory.persistence.database import get_db
+from software_factory.profiler.loader import load_profile_from_repo, check_protected_paths
 
 
 # --- 1. Nodos de Agentes ---
@@ -166,7 +167,24 @@ async def reviewer_node(state: FactoryState) -> FactoryState:
     wt_manager = WorktreeManager()
     agent = ReviewerAgent()
     try:
-        diff_text = await wt_manager.get_diff(task_id)
+        worktree_path = wt_manager.get_worktree_path(task_id)
+        profile = load_profile_from_repo(worktree_path)
+
+        # 1. Validación de directivas de rutas protegidas declaradas en el perfil
+        changed_files = await wt_manager.get_changed_files(task_id, base_branch=profile.base_branch)
+        violations = check_protected_paths(profile, changed_files)
+        if violations:
+            err_msg = (
+                f"Violación de arquitectura: se han modificado rutas protegidas en {profile.project_name} "
+                f"({', '.join(violations)})."
+            )
+            return {
+                **state,
+                "error_message": err_msg,
+            }
+
+        # 2. Análisis de diff y escaneo de secretos
+        diff_text = await wt_manager.get_diff(task_id, base_branch=profile.base_branch)
         verdict = await agent.review_task(
             task_id=task_id,
             diff_text=diff_text,
