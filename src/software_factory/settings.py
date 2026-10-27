@@ -40,7 +40,7 @@ class Settings(BaseSettings):
     fcc_anthropic_base_url: str = Field(default="http://127.0.0.1:8082/v1", alias="FCC_ANTHROPIC_BASE_URL")
     fcc_responses_base_url: str = Field(default="http://127.0.0.1:8082/v1", alias="FCC_RESPONSES_BASE_URL")
     fcc_proxy_token: str | None = Field(default=None, alias="FCC_PROXY_TOKEN")
-    fcc_timeout: float = Field(default=120.0, alias="FCC_TIMEOUT")
+    fcc_timeout: float = Field(default=240.0, alias="FCC_TIMEOUT")
 
     # Foundry Local (deshabilitado inicialmente)
     foundry_local_enabled: bool = Field(default=False, alias="FOUNDRY_LOCAL_ENABLED")

@@ -56,7 +56,7 @@ class FCCAnthropicProvider:
         self,
         base_url: str = "http://127.0.0.1:8082/v1",
         token: str | None = None,
-        timeout: float = 60.0,
+        timeout: float = 240.0,
         is_local_backend: bool = False,
         client: httpx.AsyncClient | None = None,
     ):
@@ -193,7 +193,7 @@ class FCCResponsesProvider:
         self,
         base_url: str = "http://127.0.0.1:8082/v1",
         token: str | None = None,
-        timeout: float = 60.0,
+        timeout: float = 240.0,
         is_local_backend: bool = False,
         client: httpx.AsyncClient | None = None,
     ):
