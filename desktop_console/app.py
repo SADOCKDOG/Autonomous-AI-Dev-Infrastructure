@@ -279,17 +279,20 @@ class DesktopConsoleApp(tk.Tk):
         # Crear pestanas
         self.tab_services = tk.Frame(self.notebook, bg="#121212")
         self.tab_projects = tk.Frame(self.notebook, bg="#121212")
+        self.tab_code_sessions = tk.Frame(self.notebook, bg="#121212")
         self.tab_incidents = tk.Frame(self.notebook, bg="#121212")
         self.tab_audit = tk.Frame(self.notebook, bg="#121212")
 
         self.notebook.add(self.tab_services, text=" SERVICIOS & SALUD ")
         self.notebook.add(self.tab_projects, text=" PROYECTOS & KANBAN ")
+        self.notebook.add(self.tab_code_sessions, text=" CODE SESSIONS & AGENTES ")
         self.notebook.add(self.tab_incidents, text=" GESTOR DE INCIDENCIAS ")
         self.notebook.add(self.tab_audit, text=" EVENTOS & AUDITORIA ")
 
         # Inicializar contenido de cada pestana
         self._init_services_tab()
         self._init_projects_tab()
+        self._init_code_sessions_tab()
         self._init_incidents_tab()
         self._init_audit_tab()
 
@@ -409,7 +412,7 @@ class DesktopConsoleApp(tk.Tk):
 
         self.btn_open_fcc_admin = tk.Button(
             btn_grid,
-            text="Abrir Admin FCC (:8082)",
+            text="Admin FCC (:8082)",
             bg="#7C3AED",
             fg="#FFFFFF",
             activebackground="#6D28D9",
@@ -419,6 +422,19 @@ class DesktopConsoleApp(tk.Tk):
             command=self.open_fcc_admin,
         )
         self.btn_open_fcc_admin.grid(row=2, column=0, padx=4, pady=4, sticky="ew")
+
+        self.btn_open_code_sessions = tk.Button(
+            btn_grid,
+            text="Code Sessions (/admin/code)",
+            bg="#5B21B6",
+            fg="#FFFFFF",
+            activebackground="#4C1D95",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9, "bold"),
+            relief="flat",
+            command=self.open_fcc_code_sessions,
+        )
+        self.btn_open_code_sessions.grid(row=2, column=1, padx=4, pady=4, sticky="ew")
 
         self.btn_start_fcc = tk.Button(
             btn_grid,
@@ -431,7 +447,20 @@ class DesktopConsoleApp(tk.Tk):
             relief="flat",
             command=self.start_fcc_server,
         )
-        self.btn_start_fcc.grid(row=2, column=1, padx=4, pady=4, sticky="ew")
+        self.btn_start_fcc.grid(row=3, column=0, padx=4, pady=4, sticky="ew")
+
+        self.btn_launch_cli = tk.Button(
+            btn_grid,
+            text="Lanzar Cliente FCC CLI",
+            bg="#059669",
+            fg="#FFFFFF",
+            activebackground="#047857",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9),
+            relief="flat",
+            command=self.launch_fcc_client_bat,
+        )
+        self.btn_launch_cli.grid(row=3, column=1, padx=4, pady=4, sticky="ew")
 
         btn_grid.columnconfigure(0, weight=1)
         btn_grid.columnconfigure(1, weight=1)
@@ -480,20 +509,38 @@ class DesktopConsoleApp(tk.Tk):
         metric_lbl.pack(anchor="w", padx=12, pady=(0, 4 if svc_id == "fcc_server" else 10))
 
         if svc_id == "fcc_server":
+            btns_box = tk.Frame(card, bg="#1E1E1E")
+            btns_box.pack(anchor="w", padx=12, pady=(0, 8))
+
             admin_btn = tk.Button(
-                card,
-                text="Abrir Consola Admin (Web)",
+                btns_box,
+                text="Admin Web (:8082)",
                 bg="#312E81",
                 fg="#C7D2FE",
                 activebackground="#3730A3",
                 activeforeground="#FFFFFF",
                 font=("Segoe UI", 8, "bold"),
                 relief="flat",
-                padx=8,
+                padx=6,
                 pady=2,
                 command=self.open_fcc_admin,
             )
-            admin_btn.pack(anchor="w", padx=12, pady=(0, 8))
+            admin_btn.pack(side="left", padx=(0, 4))
+
+            code_btn = tk.Button(
+                btns_box,
+                text="Code Sessions (/code)",
+                bg="#5B21B6",
+                fg="#DDD6FE",
+                activebackground="#4C1D95",
+                activeforeground="#FFFFFF",
+                font=("Segoe UI", 8, "bold"),
+                relief="flat",
+                padx=6,
+                pady=2,
+                command=self.open_fcc_code_sessions,
+            )
+            code_btn.pack(side="left")
 
         self.services_cards[svc_id] = {
             "card": card,
@@ -706,7 +753,185 @@ class DesktopConsoleApp(tk.Tk):
             self.task_detail_text.insert("end", f"Error cargando detalles: {exc}")
 
     # -------------------------------------------------------------------------
-    # PESTANA 3: GESTOR DE INCIDENCIAS OPERACIONALES Y AI-GRC
+    # PESTANA 3: CODE SESSIONS E INTERACCION CON AGENTES
+    # -------------------------------------------------------------------------
+    def _init_code_sessions_tab(self):
+        parent = self.tab_code_sessions
+
+        # Barra superior con enlaces a http://127.0.0.1:8082/admin/code y lanzadores
+        top_bar = tk.Frame(parent, bg="#121212")
+        top_bar.pack(fill="x", padx=8, pady=(8, 4))
+
+        tk.Label(
+            top_bar,
+            text="FCC Code Sessions Hub (127.0.0.1:8082/admin/code):",
+            bg="#121212",
+            fg="#94A3B8",
+            font=("Segoe UI", 9, "bold"),
+        ).pack(side="left", padx=(0, 6))
+
+        btn_open_web = tk.Button(
+            top_bar,
+            text="Abrir Code Sessions Web",
+            bg="#7C3AED",
+            fg="#FFFFFF",
+            activebackground="#6D28D9",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9, "bold"),
+            relief="flat",
+            padx=10,
+            pady=3,
+            command=self.open_fcc_code_sessions,
+        )
+        btn_open_web.pack(side="left", padx=4)
+
+        btn_launch_cli = tk.Button(
+            top_bar,
+            text="Lanzar Claude Code CLI",
+            bg="#2563EB",
+            fg="#FFFFFF",
+            activebackground="#1D4ED8",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9),
+            relief="flat",
+            padx=10,
+            pady=3,
+            command=self.launch_claude_cli,
+        )
+        btn_launch_cli.pack(side="left", padx=4)
+
+        btn_launch_bat = tk.Button(
+            top_bar,
+            text="Lanzar Sesion Aider / Codex",
+            bg="#059669",
+            fg="#FFFFFF",
+            activebackground="#047857",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9),
+            relief="flat",
+            padx=10,
+            pady=3,
+            command=self.launch_fcc_client_bat,
+        )
+        btn_launch_bat.pack(side="left", padx=4)
+
+        # Barra de configuracion interactiva de agentes
+        config_bar = tk.Frame(parent, bg="#1E1E1E", bd=1, relief="solid")
+        config_bar.configure(highlightbackground="#333333", highlightthickness=1)
+        config_bar.pack(fill="x", padx=8, pady=4)
+
+        tk.Label(config_bar, text="Rol del Agente:", bg="#1E1E1E", fg="#CBD5E1", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(12, 4), pady=6)
+        self.session_agent_var = tk.StringVar(value="Arquitecto de Software")
+        agent_combo = ttk.Combobox(
+            config_bar,
+            textvariable=self.session_agent_var,
+            values=[
+                "Arquitecto de Software",
+                "Analista de Requerimientos",
+                "Desarrollador Full-Stack",
+                "Ingeniero QA / Tester",
+                "Auditor AI-GRC & Seguridad",
+                "Project Manager",
+            ],
+            state="readonly",
+            width=24,
+        )
+        agent_combo.pack(side="left", padx=4, pady=6)
+
+        tk.Label(config_bar, text="Modelo FCC:", bg="#1E1E1E", fg="#CBD5E1", font=("Segoe UI", 9, "bold")).pack(side="left", padx=(12, 4), pady=6)
+        self.session_model_var = tk.StringVar(value="claude-3-5-sonnet-20241022")
+        model_combo = ttk.Combobox(
+            config_bar,
+            textvariable=self.session_model_var,
+            values=[
+                "claude-3-5-sonnet-20241022",
+                "claude-3-haiku-20240307",
+                "deepseek-chat",
+                "gpt-4o",
+                "gpt-4o-mini",
+            ],
+            state="readonly",
+            width=26,
+        )
+        model_combo.pack(side="left", padx=4, pady=6)
+
+        btn_clear_session = tk.Button(
+            config_bar,
+            text="Limpiar Historial",
+            bg="#2A2A2A",
+            fg="#94A3B8",
+            font=("Segoe UI", 8),
+            relief="flat",
+            padx=8,
+            pady=2,
+            command=self.clear_code_session,
+        )
+        btn_clear_session.pack(side="right", padx=12, pady=6)
+
+        # Panel de transcripcion y chat con el agente
+        chat_frame = tk.Frame(parent, bg="#1E1E1E", bd=1, relief="solid")
+        chat_frame.configure(highlightbackground="#333333", highlightthickness=1)
+        chat_frame.pack(fill="both", expand=True, padx=8, pady=4)
+
+        self.session_text = tk.Text(
+            chat_frame,
+            bg="#141414",
+            fg="#F1F5F9",
+            font=("Consolas", 10),
+            wrap="word",
+            relief="flat",
+        )
+        session_scroll = ttk.Scrollbar(chat_frame, orient="vertical", command=self.session_text.yview)
+        self.session_text.configure(yscrollcommand=session_scroll.set)
+        self.session_text.pack(side="left", fill="both", expand=True, padx=8, pady=8)
+        session_scroll.pack(side="right", fill="y", pady=8)
+
+        # Mensaje de bienvenida inicial
+        welcome_banner = (
+            "========================================================================================\n"
+            " SESION INTERACTIVA DE CODIGO Y VALIDACION DE AGENTES · FREE CLAUDE CODE (FCC)\n"
+            " Hub Web Oficial: http://127.0.0.1:8082/admin/code | Endpoint Inferencia: /v1/messages\n"
+            " Seleccione el rol de agente y el modelo deseado, escriba su instruccion tecnica abajo\n"
+            " y pulse 'ENVIAR A AGENTE' para validar respuestas de diseno, codigo, QA o politicas AI-GRC.\n"
+            "========================================================================================\n\n"
+        )
+        self.session_text.insert("end", welcome_banner)
+
+        # Barra de entrada de prompt
+        input_frame = tk.Frame(parent, bg="#1E1E1E", bd=1, relief="solid")
+        input_frame.configure(highlightbackground="#333333", highlightthickness=1)
+        input_frame.pack(fill="x", padx=8, pady=(0, 8))
+
+        self.prompt_input_text = tk.Text(
+            input_frame,
+            bg="#121212",
+            fg="#FFFFFF",
+            insertbackground="#FFFFFF",
+            font=("Segoe UI", 10),
+            height=3,
+            wrap="word",
+            relief="flat",
+        )
+        self.prompt_input_text.pack(side="left", fill="both", expand=True, padx=8, pady=8)
+        self.prompt_input_text.bind("<Control-Return>", lambda e: self.send_code_session_prompt())
+
+        self.btn_send_prompt = tk.Button(
+            input_frame,
+            text="ENVIAR A AGENTE\n(Ctrl+Enter)",
+            bg="#2563EB",
+            fg="#FFFFFF",
+            activebackground="#1D4ED8",
+            activeforeground="#FFFFFF",
+            font=("Segoe UI", 9, "bold"),
+            relief="flat",
+            padx=16,
+            pady=8,
+            command=self.send_code_session_prompt,
+        )
+        self.btn_send_prompt.pack(side="right", padx=8, pady=8)
+
+    # -------------------------------------------------------------------------
+    # PESTANA 4: GESTOR DE INCIDENCIAS OPERACIONALES Y AI-GRC
     # -------------------------------------------------------------------------
     def _init_incidents_tab(self):
         parent = self.tab_incidents
@@ -1103,6 +1328,134 @@ class DesktopConsoleApp(tk.Tk):
                 self.log_service_message(f"Error iniciando FCC Server: {exc}")
 
         threading.Thread(target=run, daemon=True).start()
+
+    def open_fcc_code_sessions(self):
+        """Abre el hub web de Code Sessions de FCC en el navegador."""
+        url = "http://127.0.0.1:8082/admin/code"
+        self.log_service_message(f"Abriendo Code Sessions en navegador: {url}")
+        webbrowser.open(url)
+
+    def launch_claude_cli(self):
+        """Lanza una sesion de Claude Code CLI apuntando a FCC."""
+        bat_file = ROOT_DIR / "launch_fcc_client.bat"
+        if bat_file.exists():
+            subprocess.Popen(["cmd.exe", "/c", "start", str(bat_file)], shell=True)
+            self.log_service_message("Sesion de terminal Claude Code lanzada.")
+        else:
+            self.log_service_message("Archivo launch_fcc_client.bat no encontrado.")
+
+    def launch_fcc_client_bat(self):
+        """Lanza una sesion de herramientas de codigo contra FCC."""
+        self.launch_claude_cli()
+
+    def clear_code_session(self):
+        """Limpia el cuadro de transcripcion de la sesion."""
+        self.session_text.delete("1.0", "end")
+        welcome = (
+            "========================================================================================\n"
+            " SESION INTERACTIVA DE CODIGO Y VALIDACION DE AGENTES · FREE CLAUDE CODE (FCC)\n"
+            " Hub Web Oficial: http://127.0.0.1:8082/admin/code | Endpoint Inferencia: /v1/messages\n"
+            "========================================================================================\n\n"
+        )
+        self.session_text.insert("end", welcome)
+
+    def send_code_session_prompt(self):
+        """Envia la instruccion al modelo seleccionado via FCC en un hilo asincrono."""
+        prompt = self.prompt_input_text.get("1.0", "end").strip()
+        if not prompt:
+            return
+
+        agent_role = self.session_agent_var.get()
+        model_name = self.session_model_var.get()
+
+        # Limpiar entrada y mostrar prompt de usuario
+        self.prompt_input_text.delete("1.0", "end")
+        timestamp = datetime.datetime.now().strftime("%H:%M:%S")
+
+        self.session_text.insert("end", f"[{timestamp}] USUARIO -> [{agent_role}] ({model_name}):\n{prompt}\n\n")
+        self.session_text.insert("end", f"[{timestamp}] [{agent_role}] Procesando respuesta...\n")
+        self.session_text.see("end")
+
+        self.btn_send_prompt.config(state="disabled", text="PROCESANDO...")
+
+        # System prompt por rol
+        system_prompts = {
+            "Arquitecto de Software": "Eres el Agente Arquitecto de Software de la Software Factory. Analizas requerimientos, disenas diagramas, propones estructuras modulares y minimizas dependencias sin modificar codigo directamente. Responde de forma tecnica y estructurada en espanol.",
+            "Analista de Requerimientos": "Eres el Agente Analista de la Software Factory. Interpretas requerimientos de negocio, defines criterios de aceptacion rigurosos (formato Given-When-Then) y verificas la conformidad normativa. Responde con precision en espanol.",
+            "Desarrollador Full-Stack": "Eres el Agente Desarrollador Full-Stack de la Software Factory. Implementas codigo limpio, modular, tipado y optimizado en Python, TypeScript o Rust, respetando principios SOLID y cero secretos en codigo. Responde con precision en espanol.",
+            "Ingeniero QA / Tester": "Eres el Agente QA Tester de la Software Factory. Disenas planes de pruebas unitarias, de integracion y e2e, formulas aserciones rigurosas y verificas la cobertura sin tolerar regresiones. Responde con precision en espanol.",
+            "Auditor AI-GRC & Seguridad": "Eres el Agente Auditor de Seguridad y AI-GRC de la Software Factory. Escaneas posibles fugas de datos, verificas ausencia de credenciales, aplicas limites de aislamiento y certificas el cumplimiento de las politicas normativas. Responde con precision en espanol.",
+            "Project Manager": "Eres el Agente Project Manager de la Software Factory. Coordinas la distribucion de tareas Kanban, balanceas cargas de trabajo y aseguras la trazabilidad del ciclo de vida. Responde con precision en espanol.",
+        }
+        sys_msg = system_prompts.get(agent_role, "Eres un agente de inteligencia artificial de la Software Factory.")
+
+        def worker():
+            import urllib.request
+            try:
+                url = "http://127.0.0.1:8082/v1/messages"
+                fcc_key = "fake_or_token"
+                env_file = Path.home() / ".fcc" / ".env"
+                if env_file.exists():
+                    try:
+                        for line in env_file.read_text(encoding="utf-8").splitlines():
+                            if line.startswith("FCC_API_KEY="):
+                                fcc_key = line.split("=", 1)[1].strip()
+                                break
+                    except Exception:
+                        pass
+
+                payload = {
+                    "model": model_name,
+                    "system": sys_msg,
+                    "max_tokens": 1024,
+                    "messages": [{"role": "user", "content": prompt}],
+                }
+                req = urllib.request.Request(
+                    url,
+                    data=json.dumps(payload).encode("utf-8"),
+                    headers={"Content-Type": "application/json", "Authorization": f"Bearer {fcc_key}"},
+                )
+                with urllib.request.urlopen(req, timeout=35) as resp:
+                    res = json.loads(resp.read().decode("utf-8"))
+                    text_parts = []
+                    for block in res.get("content", []):
+                        if block.get("type") == "text":
+                            text_parts.append(block.get("text", ""))
+                    answer = "\n".join(text_parts).strip() or "(Respuesta completada)"
+
+                # Registrar en auditoria inmutable SQLite WAL
+                try:
+                    with sqlite3.connect(DB_PATH) as conn:
+                        conn.execute(
+                            "INSERT INTO audit_logs (task_id, action, actor, details) VALUES (?, ?, ?, ?)",
+                            (
+                                self.selected_task_id or "CODE-SESSION",
+                                "AGENT_INTERACTIVE_SESSION",
+                                agent_role,
+                                json.dumps({"model": model_name, "prompt": prompt[:200], "status": "COMPLETED"}),
+                            ),
+                        )
+                except Exception:
+                    pass
+
+                def update_ui_success():
+                    t_now = datetime.datetime.now().strftime("%H:%M:%S")
+                    self.session_text.insert("end", f"[{t_now}] [{agent_role}] RESPUESTA:\n{answer}\n\n" + "-" * 70 + "\n\n")
+                    self.session_text.see("end")
+                    self.btn_send_prompt.config(state="normal", text="ENVIAR A AGENTE\n(Ctrl+Enter)")
+                    self.log_service_message(f"Respuesta recibida de [{agent_role}] via FCC ({model_name}).")
+
+                self.safe_after(0, update_ui_success)
+            except Exception as exc:
+                def update_ui_error():
+                    self.session_text.insert("end", f"[ERROR DE INFERENCIA FCC]: {exc}\n\n" + "-" * 70 + "\n\n")
+                    self.session_text.see("end")
+                    self.btn_send_prompt.config(state="normal", text="ENVIAR A AGENTE\n(Ctrl+Enter)")
+                    self.log_service_message(f"Fallo en sesion de agente [{agent_role}]: {exc}")
+
+                self.safe_after(0, update_ui_error)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def load_tasks(self):
         """Carga las tareas de SQLite aplicando los filtros seleccionados."""
