@@ -2,14 +2,36 @@
 Alineado con ISO/IEC 42001 y Microsoft Responsible AI.
 """
 
+import os
 import hashlib
 from pathlib import Path
 from typing import Dict, Tuple, Optional
 
-# Directorio base de políticas y base de conocimiento centralizada
+# Directorio raíz del proyecto actual
 _ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
-POLICIES_DIR = _ROOT_DIR / "policies"
-KNOWLEDGE_BASE_DIR = _ROOT_DIR / "knowledge_base"
+
+# Resolución jerárquica del repositorio privado de gobernanza y Fuente de Verdad:
+# 1. Variable de entorno DOC_COMPLIANCE_DIR
+# 2. Repositorio privado adyacente: Autonomous-Doc-Compliance
+# 3. Fallback interno local
+_ENV_DOC_DIR = os.getenv("DOC_COMPLIANCE_DIR")
+if _ENV_DOC_DIR and Path(_ENV_DOC_DIR).exists():
+    DOC_COMPLIANCE_REPO_DIR = Path(_ENV_DOC_DIR).resolve()
+elif (_ROOT_DIR.parent / "Autonomous-Doc-Compliance").exists():
+    DOC_COMPLIANCE_REPO_DIR = _ROOT_DIR.parent / "Autonomous-Doc-Compliance"
+else:
+    DOC_COMPLIANCE_REPO_DIR = _ROOT_DIR
+
+POLICIES_DIR = (
+    DOC_COMPLIANCE_REPO_DIR / "policies"
+    if (DOC_COMPLIANCE_REPO_DIR / "policies").exists()
+    else _ROOT_DIR / "policies"
+)
+KNOWLEDGE_BASE_DIR = (
+    DOC_COMPLIANCE_REPO_DIR / "knowledge_base"
+    if (DOC_COMPLIANCE_REPO_DIR / "knowledge_base").exists()
+    else _ROOT_DIR / "knowledge_base"
+)
 ADJACENT_DOCS_DIR = _ROOT_DIR.parent / "docs" / "dev"
 
 # Mapeo de roles a archivos de política

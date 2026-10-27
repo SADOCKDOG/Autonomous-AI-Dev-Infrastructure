@@ -1,12 +1,15 @@
 # Repositorio Central de Conocimiento y Fuente de Verdad (Knowledge Base Hub)
 
-## 1. Misión
-Este directorio constituye el **Punto Único de Verdad (Single Source of Truth)** de la infraestructura de la Software Factory de Sdog Farm.
+## 1. Misión y Resolución en Producción
+Este directorio constituye el punto de enlace local hacia la **Fuente de Verdad Canónica (Single Source of Truth)**.
 
-Centraliza el conocimiento arquitectónico, técnico y de soporte de todos los proyectos del ecosistema para consumo transversal y coordinado de:
-1. **Agentes de la Software Factory (`AutonomousDev` y `AutonomousDevConsole`):** Carga obligatoria previa en la orquestación.
-2. **Cloudflare Workers de Soporte (`livestock-manager-support-api`):** Fuente técnica para resolución de tickets por IA.
-3. **Desarrolladores y Operadores Humanos:** Documentación de referencia para homologación y versionado.
+En entornos de producción, la base de conocimiento técnica privada de proyectos reside de forma segura y confidencial en el repositorio privado:
+- **`SADOCKDOG/Autonomous-Doc-Compliance`** (`knowledge_base/`)
+
+El motor de agentes `PolicyManager` resuelve automáticamente los documentos desde:
+1. La variable de entorno `DOC_COMPLIANCE_DIR`.
+2. El repositorio privado adyacente `Autonomous-Doc-Compliance`.
+3. El fallback local `knowledge_base/`.
 
 ---
 
