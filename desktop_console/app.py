@@ -873,6 +873,16 @@ class DesktopConsoleApp(tk.Tk):
         chat_frame.configure(highlightbackground="#333333", highlightthickness=1)
         chat_frame.pack(fill="both", expand=True, padx=8, pady=4)
 
+        lbl_history = tk.Label(
+            chat_frame,
+            text="HISTORIAL DE DIALOGO Y RESPUESTAS DEL AGENTE (Solo lectura):",
+            bg="#1E1E1E",
+            fg="#94A3B8",
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        )
+        lbl_history.pack(fill="x", padx=8, pady=(6, 2))
+
         self.session_text = tk.Text(
             chat_frame,
             bg="#141414",
@@ -883,40 +893,57 @@ class DesktopConsoleApp(tk.Tk):
         )
         session_scroll = ttk.Scrollbar(chat_frame, orient="vertical", command=self.session_text.yview)
         self.session_text.configure(yscrollcommand=session_scroll.set)
-        self.session_text.pack(side="left", fill="both", expand=True, padx=8, pady=8)
-        session_scroll.pack(side="right", fill="y", pady=8)
+        self.session_text.pack(side="left", fill="both", expand=True, padx=8, pady=(0, 8))
+        session_scroll.pack(side="right", fill="y", pady=(0, 8))
 
         # Mensaje de bienvenida inicial
         welcome_banner = (
             "========================================================================================\n"
             " SESION INTERACTIVA DE CODIGO Y VALIDACION DE AGENTES · FREE CLAUDE CODE (FCC)\n"
             " Hub Web Oficial: http://127.0.0.1:8082/admin/code | Endpoint Inferencia: /v1/messages\n"
-            " Seleccione el rol de agente y el modelo deseado, escriba su instruccion tecnica abajo\n"
-            " y pulse 'ENVIAR A AGENTE' para validar respuestas de diseno, codigo, QA o politicas AI-GRC.\n"
+            " Seleccione el rol de agente y el modelo arriba, escriba su instruccion tecnica abajo\n"
+            " en el recuadro 'INSTRUCCION TECNICA / PROMPT' y pulse 'ENVIAR A AGENTE'.\n"
             "========================================================================================\n\n"
         )
         self.session_text.insert("end", welcome_banner)
+        self.session_text.config(state="disabled")
 
-        # Barra de entrada de prompt
+        # Barra de entrada de prompt con encabezado destacado y borde visible
         input_frame = tk.Frame(parent, bg="#1E1E1E", bd=1, relief="solid")
-        input_frame.configure(highlightbackground="#333333", highlightthickness=1)
+        input_frame.configure(highlightbackground="#2563EB", highlightthickness=1)
         input_frame.pack(fill="x", padx=8, pady=(0, 8))
 
-        self.prompt_input_text = tk.Text(
+        lbl_input = tk.Label(
             input_frame,
-            bg="#121212",
+            text="INSTRUCCION TECNICA / PROMPT PARA EL AGENTE (Escriba aqui su requerimiento):",
+            bg="#1E1E1E",
+            fg="#60A5FA",
+            font=("Segoe UI", 9, "bold"),
+            anchor="w",
+        )
+        lbl_input.pack(fill="x", padx=8, pady=(6, 4))
+
+        input_box_frame = tk.Frame(input_frame, bg="#1E1E1E")
+        input_box_frame.pack(fill="both", expand=True, padx=8, pady=(0, 8))
+
+        self.prompt_input_text = tk.Text(
+            input_box_frame,
+            bg="#0F172A",
             fg="#FFFFFF",
-            insertbackground="#FFFFFF",
+            insertbackground="#60A5FA",
             font=("Segoe UI", 10),
             height=3,
             wrap="word",
-            relief="flat",
+            relief="solid",
+            bd=1,
+            highlightbackground="#3B82F6",
+            highlightthickness=1,
         )
-        self.prompt_input_text.pack(side="left", fill="both", expand=True, padx=8, pady=8)
+        self.prompt_input_text.pack(side="left", fill="both", expand=True, padx=(0, 8))
         self.prompt_input_text.bind("<Control-Return>", lambda e: self.send_code_session_prompt())
 
         self.btn_send_prompt = tk.Button(
-            input_frame,
+            input_box_frame,
             text="ENVIAR A AGENTE\n(Ctrl+Enter)",
             bg="#2563EB",
             fg="#FFFFFF",
@@ -928,7 +955,7 @@ class DesktopConsoleApp(tk.Tk):
             pady=8,
             command=self.send_code_session_prompt,
         )
-        self.btn_send_prompt.pack(side="right", padx=8, pady=8)
+        self.btn_send_prompt.pack(side="right", fill="y")
 
     # -------------------------------------------------------------------------
     # PESTANA 4: GESTOR DE INCIDENCIAS OPERACIONALES Y AI-GRC
@@ -1348,8 +1375,19 @@ class DesktopConsoleApp(tk.Tk):
         """Lanza una sesion de herramientas de codigo contra FCC."""
         self.launch_claude_cli()
 
+    def append_session_text(self, text: str):
+        """Inserta texto en la consola de sesion respetando el estado de solo lectura."""
+        try:
+            self.session_text.config(state="normal")
+            self.session_text.insert("end", text)
+            self.session_text.see("end")
+            self.session_text.config(state="disabled")
+        except Exception:
+            pass
+
     def clear_code_session(self):
         """Limpia el cuadro de transcripcion de la sesion."""
+        self.session_text.config(state="normal")
         self.session_text.delete("1.0", "end")
         welcome = (
             "========================================================================================\n"
@@ -1358,11 +1396,17 @@ class DesktopConsoleApp(tk.Tk):
             "========================================================================================\n\n"
         )
         self.session_text.insert("end", welcome)
+        self.session_text.config(state="disabled")
 
     def send_code_session_prompt(self):
         """Envia la instruccion al modelo seleccionado via FCC en un hilo asincrono."""
         prompt = self.prompt_input_text.get("1.0", "end").strip()
         if not prompt:
+            self.prompt_input_text.focus_set()
+            messagebox.showwarning(
+                "Instruccion Requerida",
+                "Por favor, escriba una instruccion tecnica o requerimiento en el recuadro inferior 'INSTRUCCION TECNICA / PROMPT' antes de pulsar 'ENVIAR A AGENTE'."
+            )
             return
 
         agent_role = self.session_agent_var.get()
@@ -1372,9 +1416,8 @@ class DesktopConsoleApp(tk.Tk):
         self.prompt_input_text.delete("1.0", "end")
         timestamp = datetime.datetime.now().strftime("%H:%M:%S")
 
-        self.session_text.insert("end", f"[{timestamp}] USUARIO -> [{agent_role}] ({model_name}):\n{prompt}\n\n")
-        self.session_text.insert("end", f"[{timestamp}] [{agent_role}] Procesando respuesta...\n")
-        self.session_text.see("end")
+        self.append_session_text(f"[{timestamp}] USUARIO -> [{agent_role}] ({model_name}):\n{prompt}\n\n")
+        self.append_session_text(f"[{timestamp}] [{agent_role}] Consultando modelo y procesando respuesta...\n")
 
         self.btn_send_prompt.config(state="disabled", text="PROCESANDO...")
 
@@ -1392,7 +1435,8 @@ class DesktopConsoleApp(tk.Tk):
         def worker():
             import urllib.request
             try:
-                url = "http://127.0.0.1:8082/v1/messages"
+                fcc_port = self.settings.get("ports", {}).get("fcc_server", 8082)
+                url = f"http://127.0.0.1:{fcc_port}/v1/messages"
                 fcc_key = "fake_or_token"
                 env_file = Path.home() / ".fcc" / ".env"
                 if env_file.exists():
@@ -1407,7 +1451,7 @@ class DesktopConsoleApp(tk.Tk):
                 payload = {
                     "model": model_name,
                     "system": sys_msg,
-                    "max_tokens": 1024,
+                    "max_tokens": 3000,
                     "messages": [{"role": "user", "content": prompt}],
                 }
                 req = urllib.request.Request(
@@ -1415,13 +1459,16 @@ class DesktopConsoleApp(tk.Tk):
                     data=json.dumps(payload).encode("utf-8"),
                     headers={"Content-Type": "application/json", "Authorization": f"Bearer {fcc_key}"},
                 )
-                with urllib.request.urlopen(req, timeout=35) as resp:
+                with urllib.request.urlopen(req, timeout=120) as resp:
                     res = json.loads(resp.read().decode("utf-8"))
                     text_parts = []
                     for block in res.get("content", []):
                         if block.get("type") == "text":
                             text_parts.append(block.get("text", ""))
-                    answer = "\n".join(text_parts).strip() or "(Respuesta completada)"
+                    answer = "\n".join(text_parts).strip()
+                    if not answer:
+                        types = [b.get("type") for b in res.get("content", [])]
+                        answer = f"(Respuesta recibida sin bloques de texto directos. Tipos de bloque: {types})"
 
                 # Registrar en auditoria inmutable SQLite WAL
                 try:
@@ -1440,16 +1487,14 @@ class DesktopConsoleApp(tk.Tk):
 
                 def update_ui_success():
                     t_now = datetime.datetime.now().strftime("%H:%M:%S")
-                    self.session_text.insert("end", f"[{t_now}] [{agent_role}] RESPUESTA:\n{answer}\n\n" + "-" * 70 + "\n\n")
-                    self.session_text.see("end")
+                    self.append_session_text(f"[{t_now}] [{agent_role}] RESPUESTA:\n{answer}\n\n" + "-" * 70 + "\n\n")
                     self.btn_send_prompt.config(state="normal", text="ENVIAR A AGENTE\n(Ctrl+Enter)")
                     self.log_service_message(f"Respuesta recibida de [{agent_role}] via FCC ({model_name}).")
 
                 self.safe_after(0, update_ui_success)
             except Exception as exc:
                 def update_ui_error():
-                    self.session_text.insert("end", f"[ERROR DE INFERENCIA FCC]: {exc}\n\n" + "-" * 70 + "\n\n")
-                    self.session_text.see("end")
+                    self.append_session_text(f"[ERROR DE INFERENCIA FCC]: {exc}\n\n" + "-" * 70 + "\n\n")
                     self.btn_send_prompt.config(state="normal", text="ENVIAR A AGENTE\n(Ctrl+Enter)")
                     self.log_service_message(f"Fallo en sesion de agente [{agent_role}]: {exc}")
 
