@@ -9,4 +9,4 @@ def test_settings_defaults():
     assert s.factory_port == 8000
     assert s.fcc_enabled is True
     assert s.foundry_local_enabled is False  # Restricción: deshabilitado por defecto
-    assert s.azure_ai_endpoint is None
+    assert not s.azure_ai_endpoint
