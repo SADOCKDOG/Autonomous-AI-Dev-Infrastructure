@@ -9,6 +9,7 @@ from software_factory.agents.architect import ArchitectAgent
 from software_factory.agents.developer import DeveloperAgent
 from software_factory.agents.tester import TesterAgent
 from software_factory.agents.reviewer import ReviewerAgent
+from software_factory.agents.uiux import UIUXAgent
 from software_factory.git.worktree import WorktreeManager
 from software_factory.kanban.service import KanbanService
 from software_factory.kanban.schema import TaskStatus, TaskTransitionRequest
@@ -126,6 +127,41 @@ async def developer_node(state: FactoryState) -> FactoryState:
         }
     except Exception as exc:
         return {**state, "error_message": f"Fallo en desarrollador: {str(exc)}"}
+
+
+async def uiux_node(state: FactoryState) -> FactoryState:
+    """Nodo auditor de ergonomía y conformidad de tokens de interfaz (Modo Asesor)."""
+    task_id = state["task_id"]
+    wt_manager = WorktreeManager()
+    agent = UIUXAgent()
+    try:
+        worktree_path = wt_manager.get_worktree_path(task_id)
+        profile = load_profile_from_repo(worktree_path)
+        changed_files = await wt_manager.get_changed_files(task_id, base_branch=profile.base_branch)
+        diff_text = await wt_manager.get_diff(task_id, base_branch=profile.base_branch)
+
+        verdict = await agent.evaluate_ui(
+            task_id=task_id,
+            worktree_path=worktree_path,
+            profile=profile,
+            changed_files=changed_files,
+            diff_text=diff_text,
+        )
+
+        if not verdict.passed:
+            return {
+                **state,
+                "uiux_verdict": verdict.model_dump(),
+                "error_message": f"Evaluación UI/UX falló en modo estricto: {verdict.summary}",
+            }
+
+        return {
+            **state,
+            "uiux_verdict": verdict.model_dump(),
+            "error_message": None,
+        }
+    except Exception as exc:
+        return {**state, "error_message": f"Fallo en evaluación UI/UX: {str(exc)}"}
 
 
 async def tester_node(state: FactoryState) -> FactoryState:
@@ -271,6 +307,9 @@ def route_architect(state: FactoryState) -> str:
     return "error_node" if state.get("error_message") else "developer_node"
 
 def route_developer(state: FactoryState) -> str:
+    return "error_node" if state.get("error_message") else "uiux_node"
+
+def route_uiux(state: FactoryState) -> str:
     return "error_node" if state.get("error_message") else "tester_node"
 
 def route_tester(state: FactoryState) -> str:
@@ -289,6 +328,7 @@ def build_factory_graph():
     graph.add_node("analyst_node", analyst_node)
     graph.add_node("architect_node", architect_node)
     graph.add_node("developer_node", developer_node)
+    graph.add_node("uiux_node", uiux_node)
     graph.add_node("tester_node", tester_node)
     graph.add_node("reviewer_node", reviewer_node)
     graph.add_node("error_node", error_node)
@@ -297,6 +337,7 @@ def build_factory_graph():
     graph.add_conditional_edges("analyst_node", route_analyst)
     graph.add_conditional_edges("architect_node", route_architect)
     graph.add_conditional_edges("developer_node", route_developer)
+    graph.add_conditional_edges("uiux_node", route_uiux)
     graph.add_conditional_edges("tester_node", route_tester)
     graph.add_conditional_edges("reviewer_node", route_reviewer)
     graph.add_edge("error_node", END)

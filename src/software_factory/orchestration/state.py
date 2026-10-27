@@ -16,6 +16,7 @@ class FactoryState(TypedDict, total=False):
     functional_scope: list[str]
     architect_plan: dict[str, Any] | None
     developer_result: dict[str, Any] | None
+    uiux_verdict: dict[str, Any] | None
     test_verdict: dict[str, Any] | None
     review_verdict: dict[str, Any] | None
     error_message: str | None
