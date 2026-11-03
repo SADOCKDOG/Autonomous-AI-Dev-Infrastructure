@@ -253,3 +253,68 @@ La infraestructura cuenta con un repositorio y aplicacion de escritorio nativa d
 
 #### Code Sessions, Agentes Especializados e Inferencia Interactiva
 ![Code Sessions y Agentes](docs/screenshots/consola_code_sessions_agentes.png)
+
+---
+
+## 9. Documentación
+
+Esta sección indexa la documentación central de la Software Factory y sus relaciones con los repositorios del ecosistema.
+
+### 9.1. Fuente de verdad documental
+
+La documentación consolidada de la arquitectura, seguridad, gobernanza y ciclo de vida de desarrollo autónomo se encuentra en este repositorio:
+
+```text
+docs/
+├── architecture/
+│   ├── TRUST_BOUNDARIES.md
+│   └── COMPONENTS_AND_IDENTITIES.md
+├── security/
+│   ├── OWNER_AUTHORIZATION.md
+│   └── DEV_OPERATIONS_INTERMEDIARY.md
+├── specifications/
+│   └── doi/
+│       ├── INDEX.md
+│       ├── P1-A3_DOI_Requirements.md
+│       ├── P1-A3_Threat_Model.md
+│       ├── P1-A3_GitHub_Endpoint_Matrix.md
+│       ├── P1-A3_API_Contract.md
+│       └── P1-A3_Acceptance_Test_Matrix.md
+├── governance/
+│   ├── DEVELOPMENT_GOVERNANCE.md
+│   ├── AUTHORIZATION_POLICY.md
+│   └── PHASE_HISTORY.md
+└── decisions/
+    └── ADR/
+```
+
+### 9.2. Documentación derivada o complementaria (preexistente)
+
+- Arquitectura: [ARCHITECTURE.md](ARCHITECTURE.md), [docs/especificacion_arquitectura_v1_1.md](docs/especificacion_arquitectura_v1_1.md).
+- Seguridad: [SECURITY.md](SECURITY.md), [docs/runbook.md](docs/runbook.md).
+- Orquestación: [docs/ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md](docs/ORQUESTACION_Y_SUPERVISION_MULTIAGENTE.md).
+- Gobernanza AI-GRC / piloto: [docs/piloto_livestock_manager/](docs/piloto_livestock_manager/).
+- Consola: [docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md](docs/CONSOLA_GESTION_INTEGRAL_WINDOWS.md).
+
+### 9.3. Relación con repositorios del ecosistema
+
+- **Console-AI-Dev-Infrastructure:** aplicación de gestión; integración con la Factory y futura integración con el DOI.
+- **LIVESTOCK-MANAGER:** producto piloto; gobernanza AI-GRC.
+- **livestock-desktop / livestock-pwa-msix / livestock-manager-support-api:** repositorios de producto/soporte con documentación propia.
+
+### 9.4. Estado de capacidades
+
+- Diseño Owner Authorization: **aprobado (F1)**.
+- Implementación local Owner Authorization: **fail-closed, desactivada (F2)**.
+- DOI: **especificación aprobada (P1-A2/P1-A3)**; **implementación pendiente**.
+- Instalación App Dev: **no autorizada (P1-B)**.
+- Activación OWNER_AUTH: **no autorizada**.
+
+Consultar [docs/governance/PHASE_HISTORY.md](docs/governance/PHASE_HISTORY.md) para el registro de fases.
+
+### 9.5. Convención
+
+- Documentación nueva del dominio Factory: entrar bajo `docs/` según la estructura de §9.1.
+- No duplicar contenido ya centralizado sin justificación.
+- Toda afirmación relevante debe referenciar fase/entrega/SHA/fecha.
+

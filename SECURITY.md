@@ -27,3 +27,14 @@ Las operaciones con impacto colateral en el ciclo de vida del software exigen in
 - Publicacion de ramas hacia repositorios remotos (`git push`).
 - Transicion final de tareas al estado `DONE`.
 - Despliegues o ejecucion de migraciones de esquema destructivas.
+
+## 6. Autorizacion de Integracion y Operaciones Dev (Owner Authorization / DOI)
+
+La barrera de aprobacion humana se complementa con la autorizacion de propietario unico y el intermediario de operaciones Dev:
+
+- Diseño Owner Authorization (F1): **aprobado** (FIDO2/OpenSSH, SSHSIG, payload canonico, un solo uso, caducidad, segundo factor, `MergeExecutor`).
+- Implementacion local Owner Authorization (F2): **fail-closed, desactivada** (`OWNER_AUTH_ENABLED=false`).
+- DOI (P1-A2 / P1-A3): **especificacion aprobada** (allowlist, validacion, custodia, auditoria, recuperacion, matriz de aceptacion).
+- Capacidad de integracion operativa: **pendiente** (Fase 4: branch protection + check `Owner authorization`; Fase 5: activacion controlada).
+
+Consultar: [docs/security/OWNER_AUTHORIZATION.md](docs/security/OWNER_AUTHORIZATION.md), [docs/security/DEV_OPERATIONS_INTERMEDIARY.md](docs/security/DEV_OPERATIONS_INTERMEDIARY.md), [docs/architecture/TRUST_BOUNDARIES.md](docs/architecture/TRUST_BOUNDARIES.md).
