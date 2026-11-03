@@ -13,7 +13,7 @@
 | Cada amenaza tiene mitigación + prueba | T-01..T-08 | Threat→test | Denegar/fail-closed |
 | App Dev no puede integrar | N-01..N-04, SEC-05..07 | Negative/bypass | Denegado |
 | App Dev no puede escribir rama protegida | SEC-08, REQ-DOI-008 | Isolation/neg | Denegado |
-| No existe camino alternativo a credenciales | SEC-01/02/03/04/16 | Isolation/bypass | Denegado |
+| No existe camino alternativo a credenciales | SEC-01..SEC-04 | Isolation/bypass | Denegado |
 | Fallos → denegar, nunca permitir | SEC-11 | Fail-closed | Denegar |
 
 ## 2. Pruebas positivas
