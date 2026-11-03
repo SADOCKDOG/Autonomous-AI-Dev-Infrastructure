@@ -1,6 +1,8 @@
 # ADR-0003 — El DOI es el único intermediario de operaciones Dev
 
-**Estado:** Aprobado (documental). **Fecha:** 2026-11-03 (sesión D2-A).
+**Estado:** Aprobado como decisión de diseño (documental). **Fecha:** 2026-11-03 (sesión D2-A).
+
+**Alcance:** formalización documental de la decisión de diseño; no constituye validación operativa ni autorización del propietario para activación.
 
 ## Contexto
 Bloquear `PUT /merge` no garantiza bloqueo de integración; se requería frontera de operaciones.

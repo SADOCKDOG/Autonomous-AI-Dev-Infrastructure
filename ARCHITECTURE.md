@@ -96,7 +96,7 @@ La supervision operativa y el gobierno AI-GRC disponen de una aplicacion grafica
 La fuente de verdad documental de la arquitectura, la seguridad, la gobernanza y el ciclo de vida del desarrollo autonomo se consolida en este repositorio:
 
 - Arquitectura y limites de confianza: [docs/architecture/TRUST_BOUNDARIES.md](docs/architecture/TRUST_BOUNDARIES.md), [docs/architecture/COMPONENTS_AND_IDENTITIES.md](docs/architecture/COMPONENTS_AND_IDENTITIES.md).
-- Autorizacion del propietario y DOI: [docs/security/OWNER_AUTHORIZATION.md](docs/security/OWNER_AUTHORIZATION.md), [docs/security/DEV_OPERATIONS_INTERMEDIARY.md](docs/security/DEV_OPERATIONS_INTERMEDIARY.md).
+- Autorizacion del propietario y DOI: [docs/OWNER_AUTHORIZATION.md](docs/OWNER_AUTHORIZATION.md), [docs/security/DEV_OPERATIONS_INTERMEDIARY.md](docs/security/DEV_OPERATIONS_INTERMEDIARY.md).
 - Especificacion y requisitos DOI (serie P1-A3): [docs/specifications/doi/](docs/specifications/doi/).
 - Gobernanza y registro de fases: [docs/governance/](docs/governance/).
 - Decisiones arquitectonicas: [docs/decisions/ADR/](docs/decisions/ADR/).

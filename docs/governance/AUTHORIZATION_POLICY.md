@@ -23,6 +23,6 @@
 - `OWNER_AUTH_ENABLED`, trust file ACL, firma FIDO, check `Owner authorization`, branch protection, DOI implementación, instalación App Dev, activación.
 
 ## 6. Referencias
-- `docs/security/OWNER_AUTHORIZATION.md`
+- `docs/OWNER_AUTHORIZATION.md`
 - `docs/architecture/TRUST_BOUNDARIES.md`
 - `docs/security/DEV_OPERATIONS_INTERMEDIARY.md`

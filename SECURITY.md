@@ -37,4 +37,4 @@ La barrera de aprobacion humana se complementa con la autorizacion de propietari
 - DOI (P1-A2 / P1-A3): **especificacion aprobada** (allowlist, validacion, custodia, auditoria, recuperacion, matriz de aceptacion).
 - Capacidad de integracion operativa: **pendiente** (Fase 4: branch protection + check `Owner authorization`; Fase 5: activacion controlada).
 
-Consultar: [docs/security/OWNER_AUTHORIZATION.md](docs/security/OWNER_AUTHORIZATION.md), [docs/security/DEV_OPERATIONS_INTERMEDIARY.md](docs/security/DEV_OPERATIONS_INTERMEDIARY.md), [docs/architecture/TRUST_BOUNDARIES.md](docs/architecture/TRUST_BOUNDARIES.md).
+Consultar: [docs/OWNER_AUTHORIZATION.md](docs/OWNER_AUTHORIZATION.md), [docs/security/DEV_OPERATIONS_INTERMEDIARY.md](docs/security/DEV_OPERATIONS_INTERMEDIARY.md), [docs/architecture/TRUST_BOUNDARIES.md](docs/architecture/TRUST_BOUNDARIES.md).

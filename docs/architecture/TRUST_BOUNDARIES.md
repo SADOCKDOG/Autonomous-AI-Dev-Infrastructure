@@ -44,7 +44,7 @@ Establecer, de forma explícita y auditable, los límites de confianza que rigen
 - Fallos en validación → denegación.
 
 ## 5. Referencias
-- `docs/security/OWNER_AUTHORIZATION.md`
+- `docs/OWNER_AUTHORIZATION.md`
 - `docs/security/DEV_OPERATIONS_INTERMEDIARY.md`
 - `docs/specifications/doi/…`
 - `docs/governance/AUTHORIZATION_POLICY.md`

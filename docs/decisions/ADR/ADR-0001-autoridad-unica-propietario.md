@@ -1,6 +1,8 @@
 # ADR-0001 — Autoridad única del propietario
 
-**Estado:** Aprobado (documental). **Fecha:** 2026-11-03 (sesión D2-A).
+**Estado:** Aprobado como decisión de diseño (documental). **Fecha:** 2026-11-03 (sesión D2-A).
+
+**Alcance:** formalización documental de la decisión de diseño; no constituye validación operativa ni autorización del propietario para activación.
 
 ## Contexto
 La autorización de integración y operaciones privilegiadas debía concentrarse en una sola fuente de decisión humana.

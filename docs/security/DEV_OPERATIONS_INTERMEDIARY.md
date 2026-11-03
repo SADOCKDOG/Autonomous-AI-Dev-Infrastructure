@@ -41,4 +41,4 @@
 ## 8. Referencias
 - `docs/specifications/doi/INDEX.md`
 - `docs/specifications/doi/P1-A3_*.md`
-- `docs/security/OWNER_AUTHORIZATION.md`
+- `docs/OWNER_AUTHORIZATION.md`

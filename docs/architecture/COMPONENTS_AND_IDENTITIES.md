@@ -28,6 +28,6 @@
 | Merge / integración | **Sí** (FIDO) | No | No | Sí (validación FIDO+SHA) | Prohibido |
 
 ## 4. Referencias
-- `docs/security/OWNER_AUTHORIZATION.md`
+- `docs/OWNER_AUTHORIZATION.md`
 - `docs/security/DEV_OPERATIONS_INTERMEDIARY.md`
 - `docs/architecture/TRUST_BOUNDARIES.md`

@@ -3,6 +3,8 @@
 **Fase:** Fase 1 — P1-A3
 **Base:** P1-A2, informe correctivo P1-A, evaluación propietario.
 
+**Nota de diseño:** los resultados esperados («Permitido», «Denegado», «Fail-closed») son resultados esperados derivados del diseño y de los requisitos (P1-A2/P1-A3). No constituyen resultados de pruebas ejecutadas. Estado de la fase: **Sin implementación**.
+
 ## 1. Criterios de aceptación de P1-A3 → pruebas
 
 | Criterio de aceptación P1-A3 | Prueba asociada | Tipo | Resultado esperado |

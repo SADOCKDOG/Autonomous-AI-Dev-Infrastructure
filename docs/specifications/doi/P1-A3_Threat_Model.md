@@ -25,10 +25,10 @@
 | T-02 | Agente usa sesión admin SADOCKDOG | No accesible para agentes; break-glass | SEC |
 | T-03 | Agente llama GitHub directamente | Canal agent→DOI autenticado; DOI no proxy genérico | B-02 |
 | T-04 | Agente ejecuta merge vía App Dev | Merge fuera allowlist; fail-closed | N-01..N-04 |
-| T-05 | Agente escribe rama base | Branch protection + restricciones DOI | N-08/SEC-08 |
-| T-06 | Bypass intermediario | Fail-closed, deny-by-default | B-xx |
+| T-05 | Agente escribe rama base | Branch protection + restricciones DOI (REQ-DOI-008) | SEC-08 |
+| T-06 | Bypass intermediario | Fail-closed, deny-by-default | B-02 |
 | T-07 | Token expirado/revocado | Valida token/IAT | SEC-12 |
-| T-08 | Auditoría insuficiente | Registro sin secretos | P-17/SEC |
+| T-08 | Auditoría insuficiente | Registro sin secretos | REQ-DOI-009 |
 
 ## 4. Límites de confianza
 - Confianza en agente: baja para operaciones privilegiadas.
