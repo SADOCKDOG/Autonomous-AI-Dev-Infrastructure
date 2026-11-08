@@ -10,7 +10,7 @@ from software_factory.model_gateway.base import (
 )
 from software_factory.model_gateway.fcc_provider import FCCAnthropicProvider
 from software_factory.model_gateway.policy import ModelPolicyEngine
-from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest
+from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest, UnsignedApprovalDisabled
 
 
 def test_livestock_grc_prevents_unauthorized_pii_leak():
@@ -77,17 +77,16 @@ def test_livestock_task_human_approval_lifecycle():
         ),
     )
 
-    # Registro de aprobacion humana formal
-    decision = ApprovalManager.record_decision(
-        task.id,
-        HumanApprovalRequest(
-            approver="director_tecnico_veterinario",
-            decision="APPROVED",
-            comments="Cumplimiento con RD 787/2023 validado.",
-        ),
-    )
+    # Caller-supplied identity is no longer an approval; task remains REVIEW.
+    with pytest.raises(UnsignedApprovalDisabled):
+        ApprovalManager.record_decision(
+            task.id,
+            HumanApprovalRequest(
+                approver="director_tecnico_veterinario",
+                decision="APPROVED",
+                comments="Cumplimiento con RD 787/2023 validado.",
+            ),
+        )
 
     updated_task = KanbanService.get_task(task.id)
-    assert decision.decision == "APPROVED"
-    assert updated_task.status == TaskStatus.DONE
-
+    assert updated_task.status == TaskStatus.REVIEW

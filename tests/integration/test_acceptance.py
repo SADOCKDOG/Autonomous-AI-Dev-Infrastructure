@@ -8,7 +8,7 @@ from software_factory.kanban.schema import TaskCreate, TaskStatus, TaskTransitio
 from software_factory.kanban.service import KanbanService
 from software_factory.persistence.database import get_db, init_db
 from software_factory.orchestration.graph import run_full_cycle
-from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest
+from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest, UnsignedApprovalDisabled
 from software_factory.model_gateway.base import ProviderError, ModelRequest, ChatMessage, PolicyViolationError
 from software_factory.model_gateway.registry import ModelGateway
 from software_factory.agents.analyst import AnalystAgent, AnalystResult
@@ -85,16 +85,17 @@ def test_database_persists_across_restart(tmp_path: Path, monkeypatch):
 
 
 def test_audit_logs_contain_no_secrets():
-    """Inspecciona los registros de auditoría en SQLite para verificar que no contienen secretos en texto plano."""
+    """Unsigned caller-supplied approval is rejected and does not write an approval log."""
     task = KanbanService.create_task(TaskCreate(title="Auditoría de Secretos", acceptance_criteria=["Crit 1"]))
-    # Registrar aprobación con posibles metadatos
-    ApprovalManager.record_decision(
-        task.id,
-        HumanApprovalRequest(approver="lead_dev", decision="APPROVED", comments="Aprobación con token simulado"),
-    )
+    with pytest.raises(UnsignedApprovalDisabled):
+        ApprovalManager.record_decision(
+            task.id,
+            HumanApprovalRequest(approver="lead_dev", decision="APPROVED", comments="Aprobación con token simulado"),
+        )
 
     with get_db() as conn:
-        rows = conn.execute("SELECT details FROM audit_logs").fetchall()
+        rows = conn.execute("SELECT details FROM audit_logs WHERE action='HUMAN_APPROVAL'").fetchall()
+        assert rows == []
         for r in rows:
             details_str = r["details"]
             assert "ghp_" not in details_str
@@ -103,8 +104,8 @@ def test_audit_logs_contain_no_secrets():
 
 
 @pytest.mark.asyncio
-async def test_e2e_full_lifecycle_with_approval():
-    """Ciclo de vida completo end-to-end con todos los agentes y aprobación humana."""
+async def test_e2e_full_lifecycle_stops_until_signed_owner_authorization():
+    """The agent cycle reaches REVIEW; unsigned approval cannot mark DONE."""
     task = KanbanService.create_task(
         TaskCreate(
             title="Funcionalidad Completa E2E",
@@ -138,13 +139,13 @@ async def test_e2e_full_lifecycle_with_approval():
         state = await run_full_cycle(task.id)
         assert state["status"] == TaskStatus.REVIEW.value
 
-        # 2. Aplicar barrera de decisión humana
-        decision = ApprovalManager.record_decision(
-            task.id,
-            HumanApprovalRequest(approver="tech_lead", decision="APPROVED", comments="Verificado con éxito"),
-        )
-        assert decision.decision == "APPROVED"
+        # 2. Caller-supplied identity is not an owner signature.
+        with pytest.raises(UnsignedApprovalDisabled):
+            ApprovalManager.record_decision(
+                task.id,
+                HumanApprovalRequest(approver="tech_lead", decision="APPROVED", comments="Verificado con éxito"),
+            )
 
-        # 3. La tarea debe culminar en DONE
+        # 3. It must stay in REVIEW until a signed PR authorization is merged.
         final_task = KanbanService.get_task(task.id)
-        assert final_task.status == TaskStatus.DONE
+        assert final_task.status == TaskStatus.REVIEW

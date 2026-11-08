@@ -5,15 +5,15 @@ from unittest.mock import AsyncMock, patch
 from pathlib import Path
 from fastapi.testclient import TestClient
 from software_factory.kanban.schema import TaskCreate, TaskStatus, TaskTransitionRequest
-from software_factory.kanban.service import KanbanService
+from software_factory.kanban.service import KanbanService, KanbanValidationError
 from software_factory.agents.analyst import AnalystAgent, AnalystResult
 from software_factory.agents.architect import ArchitectAgent, ArchitectPlan
 from software_factory.agents.developer import DeveloperAgent, DeveloperResult
 from software_factory.agents.tester import TesterAgent, TestVerdict
 from software_factory.agents.reviewer import ReviewerAgent, ReviewVerdict
 from software_factory.orchestration.graph import run_full_cycle
-from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest
 from software_factory.git.worktree import WorktreeManager
+from software_factory.settings import settings
 
 
 @pytest.mark.asyncio
@@ -107,9 +107,8 @@ async def test_full_cycle_advances_to_review():
     assert task_in_db.status == TaskStatus.REVIEW
 
 
-def test_human_approval_barrier_lifecycle(client: TestClient):
-    """Prueba la barrera de decisión humana vía API REST."""
-    # 1. Crear tarea y avanzar manualmente a REVIEW para probar la barrera
+def test_unsigned_approval_endpoint_is_disabled(client: TestClient):
+    """A caller-supplied approver name is not an authenticated owner decision."""
     task = KanbanService.create_task(TaskCreate(title="Tarea para Aprobar", acceptance_criteria=["Crit 1"]))
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.READY))
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.PLANNING))
@@ -117,23 +116,20 @@ def test_human_approval_barrier_lifecycle(client: TestClient):
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.TESTING))
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.REVIEW))
 
-    # 2. Intentar aprobar
     approve_payload = {
-        "approver": "lead_engineer",
+        "approver": "agent_claimed_owner",
         "decision": "APPROVED",
-        "comments": "Cambios verificados y testeados",
+        "comments": "attempt to self-authorize",
     }
     res = client.post(f"/api/v1/tasks/{task.id}/approve", json=approve_payload)
-    assert res.status_code == 200
-    assert res.json()["decision"] == "APPROVED"
-
-    # La tarea debe haber pasado a DONE
-    updated = KanbanService.get_task(task.id)
-    assert updated.status == TaskStatus.DONE
+    assert res.status_code == 410
+    assert KanbanService.get_task(task.id).status == TaskStatus.REVIEW
+    with pytest.raises(KanbanValidationError, match="owner firmada"):
+        KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.DONE, agent_role="agent"))
 
 
-def test_human_rejection_blocks_task(client: TestClient):
-    """Prueba que el rechazo humano pasa la tarea a BLOCKED."""
+def test_unsigned_rejection_endpoint_is_disabled(client: TestClient):
+    """Legacy unsigned approval/rejection route cannot claim a human identity."""
     task = KanbanService.create_task(TaskCreate(title="Tarea a Rechazar", acceptance_criteria=["Crit 1"]))
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.READY))
     KanbanService.transition_task(task.id, TaskTransitionRequest(target_status=TaskStatus.PLANNING))
@@ -147,8 +143,19 @@ def test_human_rejection_blocks_task(client: TestClient):
         "comments": "Riesgo no mitigado en arquitectura",
     }
     res = client.post(f"/api/v1/tasks/{task.id}/approve", json=reject_payload)
-    assert res.status_code == 200
-    assert res.json()["decision"] == "REJECTED"
+    assert res.status_code == 410
+    assert KanbanService.get_task(task.id).status == TaskStatus.REVIEW
 
-    updated = KanbanService.get_task(task.id)
-    assert updated.status == TaskStatus.BLOCKED
+
+def test_owner_github_integration_is_disabled_until_trust_and_branch_rules_are_configured(client: TestClient, monkeypatch):
+    monkeypatch.setattr(settings, "owner_auth_enabled", False)
+    response = client.post(
+        "/api/v1/owner-authorizations/prepare",
+        json={
+            "repository": "SADOCKDOG/LIVESTOCK-MANAGER",
+            "pr_number": 204,
+            "allowed_files": ["js/animales.js"],
+            "allow_agent_execution": False,
+        },
+    )
+    assert response.status_code == 404
