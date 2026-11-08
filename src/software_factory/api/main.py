@@ -9,6 +9,7 @@ from software_factory.persistence.database import init_db
 from software_factory.api.health import router as health_router
 from software_factory.api.kanban import router as kanban_router
 from software_factory.api.incidents import router as incidents_router
+from software_factory.api.owner_authorization import router as owner_authorization_router
 
 
 @asynccontextmanager
@@ -37,6 +38,8 @@ app.add_middleware(
 app.include_router(health_router)
 app.include_router(kanban_router)
 app.include_router(incidents_router)
+if settings.owner_auth_enabled:
+    app.include_router(owner_authorization_router)
 
 
 if __name__ == "__main__":
