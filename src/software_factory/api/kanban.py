@@ -9,7 +9,6 @@ from software_factory.kanban.schema import (
 )
 from software_factory.kanban.service import KanbanService, KanbanValidationError
 from software_factory.orchestration.graph import run_analyst_flow, run_full_cycle
-from software_factory.orchestration.approval import ApprovalManager, HumanApprovalRequest, HumanApprovalRecord
 
 router = APIRouter(prefix="/api/v1/tasks", tags=["Kanban"])
 
@@ -72,18 +71,10 @@ async def execute_full_cycle(task_id: str) -> TaskResponse:
     return KanbanService.get_task(task_id)
 
 
-@router.post("/{task_id}/approve", response_model=HumanApprovalRecord)
-def human_approve_task(task_id: str, request: HumanApprovalRequest) -> HumanApprovalRecord:
-    """Barrera humana obligatoria para autorizar merge / cierre a DONE o rechazar a BLOCKED."""
-    try:
-        task = KanbanService.get_task(task_id)
-    except KeyError as exc:
-        raise HTTPException(status_code=404, detail=str(exc))
-
-    if task.status != TaskStatus.REVIEW and request.decision == "APPROVED":
-        raise HTTPException(
-            status_code=422,
-            detail=f"Solo se puede aprobar una tarea que esté en estado REVIEW (estado actual: {task.status.value}).",
-        )
-
-    return ApprovalManager.record_decision(task_id, request)
+@router.post("/{task_id}/approve")
+def human_approve_task(task_id: str) -> dict:
+    """Deprecated unsigned route; caller-supplied approver is not an identity proof."""
+    raise HTTPException(
+        status_code=410,
+        detail="Unsigned task approval is disabled; use the signed PR/SHA owner-authorization flow.",
+    )

@@ -114,6 +114,11 @@ class KanbanService:
         current_status = task.status
         target_status = request.target_status
 
+        if target_status == TaskStatus.DONE:
+            raise KanbanValidationError(
+                "DONE solo puede registrarse tras confirmar en GitHub el merge de la autorización owner firmada."
+            )
+
         # Validaciones de reglas de negocio
         if target_status == TaskStatus.READY:
             if not task.acceptance_criteria:
