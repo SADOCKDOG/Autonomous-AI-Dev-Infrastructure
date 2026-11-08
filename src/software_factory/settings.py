@@ -28,6 +28,21 @@ class Settings(BaseSettings):
     # Persistencia
     database_url: str = Field(default="sqlite:///data/factory.db", alias="DATABASE_URL")
 
+    # Single-owner GitHub integration authorization. Disabled until a protected
+    # owner FIDO security key, trusted public allowlist and GitHub rules are set up.
+    owner_auth_enabled: bool = Field(default=False, alias="OWNER_AUTH_ENABLED")
+    owner_auth_allowed_signers_path: Path | None = Field(default=None, alias="OWNER_AUTH_ALLOWED_SIGNERS_PATH")
+    owner_auth_repositories: str = Field(default="", alias="OWNER_AUTH_REPOSITORIES")
+    owner_auth_signer_identity: str = Field(default="", alias="OWNER_AUTH_SIGNER_IDENTITY")
+    owner_auth_signer_key_id: str = Field(default="", alias="OWNER_AUTH_SIGNER_KEY_ID")
+    owner_auth_github_login: str = Field(default="", alias="OWNER_AUTH_GITHUB_LOGIN")
+    owner_auth_max_ttl_seconds: int = Field(default=900, alias="OWNER_AUTH_MAX_TTL_SECONDS")
+    owner_auth_check_name: str = Field(default="Owner authorization", alias="OWNER_AUTH_CHECK_NAME")
+    owner_auth_check_app_id: int | None = Field(default=None, alias="OWNER_AUTH_CHECK_APP_ID")
+    owner_auth_required_check_contexts: str = Field(default="", alias="OWNER_AUTH_REQUIRED_CHECK_CONTEXTS")
+    owner_auth_required_check_app_ids_json: str = Field(default="{}", alias="OWNER_AUTH_REQUIRED_CHECK_APP_IDS_JSON")
+    owner_auth_check_groups_json: str = Field(default="{}", alias="OWNER_AUTH_CHECK_GROUPS_JSON")
+
     # Azure AI Foundry
     azure_ai_endpoint: str | None = Field(default=None, alias="AZURE_AI_ENDPOINT")
     azure_ai_model_deployment: str | None = Field(default=None, alias="AZURE_AI_MODEL_DEPLOYMENT")
