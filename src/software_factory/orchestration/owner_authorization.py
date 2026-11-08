@@ -14,7 +14,12 @@ from typing import Callable
 from uuid import uuid4
 
 from software_factory.git.github_pr import GitHubPRClient, PRSnapshot
-from software_factory.persistence.database import get_db, migrate_owner_auth_db
+from software_factory.persistence.database import (
+    OWNER_AUTH_SCHEMA_VERSION,
+    get_db,
+    get_owner_auth_schema_version,
+    migrate_owner_auth_db,
+)
 from software_factory.security.owner_authorization import (
     OWNER_AUTH_NAMESPACE,
     OWNER_REVOKE_NAMESPACE,
@@ -87,8 +92,21 @@ class OwnerAuthorizationService:
             configured_groups = {}
         self.required_check_groups = required_check_groups if required_check_groups is not None else configured_groups
         self.clock = clock or (lambda: datetime.now(timezone.utc))
-        if self.enabled:
-            migrate_owner_auth_db()
+
+    @staticmethod
+    def migrate() -> object:
+        """Explicit operation: apply Owner Auth migration to the configured DB.
+
+        Never called by __init__ or request handlers. Operators must run it
+        explicitly (per environment, with authorization) before enabling the API.
+        """
+        return migrate_owner_auth_db()
+
+    def _require_migrated(self) -> None:
+        if get_owner_auth_schema_version() != OWNER_AUTH_SCHEMA_VERSION:
+            raise OwnerAuthorizationServiceError(
+                "Migración Owner Auth pendiente; aplique migrate_owner_auth_db() explícitamente"
+            )
 
     def _require_enabled(self) -> None:
         if not self.enabled:
@@ -213,6 +231,7 @@ class OwnerAuthorizationService:
 
     def authorize(self, signed: SignedOwnerAuthorization) -> dict:
         self._require_enabled()
+        self._require_migrated()
         payload = signed.payload
         self._require_repository(payload.repository)
         if (
@@ -294,6 +313,7 @@ class OwnerAuthorizationService:
 
     def revoke(self, signed: SignedOwnerRevocation) -> dict:
         self._require_enabled()
+        self._require_migrated()
         payload = signed.payload
         self._require_repository(payload.repository)
         if (
@@ -346,6 +366,7 @@ class OwnerAuthorizationService:
 
     def get_active_for_pr(self, repository: str, pr_number: int) -> dict:
         self._require_repository(repository)
+        self._require_migrated()
         with get_db() as conn:
             row = conn.execute(
                 "SELECT authorization_id FROM owner_authorizations WHERE repository=? AND pr_number=? AND state='ACTIVE' AND expires_at>? ORDER BY issued_at DESC LIMIT 1",
@@ -357,6 +378,7 @@ class OwnerAuthorizationService:
 
     def history_for_pr(self, repository: str, pr_number: int) -> list[dict]:
         self._require_repository(repository)
+        self._require_migrated()
         with get_db() as conn:
             rows = conn.execute(
                 "SELECT authorization_id FROM owner_authorizations WHERE repository=? AND pr_number=? ORDER BY issued_at DESC LIMIT 25",
@@ -366,6 +388,7 @@ class OwnerAuthorizationService:
 
     def prepare_execution(self, authorization_id: str) -> OwnerExecutionPayload:
         self._require_enabled()
+        self._require_migrated()
         with get_db() as conn:
             row = conn.execute(
                 "SELECT * FROM owner_authorizations WHERE authorization_id=?",
@@ -413,6 +436,7 @@ class OwnerAuthorizationService:
             self._append_event(conn, authorization_id, event, actor, details)
 
     def get_status(self, authorization_id: str) -> dict:
+        self._require_migrated()
         with get_db() as conn:
             row = conn.execute(
                 "SELECT authorization_id, task_id, repository, pr_number, head_sha, base_ref, base_sha, diff_sha256, scope_json, signer_identity, github_login, key_id, issued_at, expires_at, state, merge_sha FROM owner_authorizations WHERE authorization_id=?",

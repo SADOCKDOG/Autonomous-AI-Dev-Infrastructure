@@ -89,7 +89,16 @@ class PRSnapshot:
 
 
 class GitHubPRClient:
-    """Read-only GitHub inspection. No mutating methods exist on this client."""
+    """Read-only GitHub inspection (GET only, no write endpoints, no fallback).
+
+    Limitations for PR-1 (documented):
+    - `verify_app_installation_admin` checks collaborator admin permission as a
+      proxy; it does not prove GitHub App installation identity.
+    - `gh` inherits ambient process credentials. A protected, least-privilege
+      App installation token and independent custody arrive with the executor PR.
+    All mutating verbs are rejected; fields are forbidden so `gh api` can never
+    default to POST.
+    """
 
     def __init__(
         self,
@@ -104,13 +113,13 @@ class GitHubPRClient:
         self.timeout = timeout
 
     def _api_json(self, *args: str, method: str | None = None, fields: dict[str, str] | None = None) -> Any:
-        if method is not None and method.upper() != "GET":
+        # Force GET: gh api defaults to POST when -f fields are present.
+        effective = (method or "GET").upper()
+        if effective != "GET":
             raise GitHubIntegrationError("Mutating GitHub requests are not supported by this client")
-        cmd = [self.gh, "api"]
-        if method:
-            cmd += ["--method", method]
-        for key, value in (fields or {}).items():
-            cmd += ["-f", f"{key}={value}"]
+        if fields:
+            raise GitHubIntegrationError("Fields are forbidden on this read-only client")
+        cmd = [self.gh, "api", "--method", "GET"]
         cmd += list(args)
         try:
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=self.timeout, check=False)

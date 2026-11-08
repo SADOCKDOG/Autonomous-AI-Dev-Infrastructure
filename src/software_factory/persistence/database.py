@@ -139,7 +139,9 @@ def init_db(db_path: Path | None = None) -> Path:
             conn.executescript(SCHEMA_SQL)
             conn.commit()
     except sqlite3.OperationalError:
-        # Base de datos ya inicializada o bloqueada temporalmente por la Consola Desktop
+        # Pre-existing gate: base tables already exist or are locked by the
+        # Desktop Console. This swallows OperationalError for the base schema;
+        # Owner Auth migration (migrate_owner_auth_db) surfaces errors visibly.
         pass
 
     return target_path

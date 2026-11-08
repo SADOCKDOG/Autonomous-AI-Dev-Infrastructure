@@ -114,7 +114,7 @@ def sign(namespace, payload):
 
 
 def make_service(github=None, clock=None, *, enabled=True):
-    return OwnerAuthorizationService(
+    service = OwnerAuthorizationService(
         github or FakeGitHub(),
         FakeVerifier(),
         allowed_repositories={REPO},
@@ -131,6 +131,9 @@ def make_service(github=None, clock=None, *, enabled=True):
         },
         clock=clock,
     )
+    if enabled:
+        service.migrate()
+    return service
 
 
 def authorize(service, payload=None):
@@ -364,3 +367,27 @@ def test_append_only_events_are_not_rewritten_by_app():
             (auth["authorization_id"],),
         ).fetchone()[0]
     assert count == 1 and len(before) == 1
+
+
+def test_construction_does_not_migrate_and_request_fails_closed():
+    service = OwnerAuthorizationService(
+        FakeGitHub(),
+        FakeVerifier(),
+        allowed_repositories={REPO},
+        enabled=True,
+        owner_signer_identity=OWNER,
+        owner_signer_key_id=KEY_ID,
+        owner_github_login="SADOCKDOG",
+        required_check_contexts={"Product tests", "CodeQL"},
+        required_check_app_ids={"Product tests": 11, "CodeQL": 22, "Owner authorization": 33},
+        required_check_groups={
+            "product_tests": ["Product tests"],
+            "analysis": ["CodeQL"],
+            "codeql": ["CodeQL"],
+        },
+    )
+    with get_db() as conn:
+        tables = {row[0] for row in conn.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+    assert "owner_authorizations" not in tables
+    with pytest.raises(OwnerAuthorizationServiceError, match="Migración"):
+        authorize(service)

@@ -138,6 +138,27 @@ def test_mutating_api_is_rejected(monkeypatch):
     assert not called
 
 
+def test_fields_are_forbidden_on_readonly_client():
+    client = GitHubPRClient()
+    with pytest.raises(GitHubIntegrationError, match="Fields are forbidden"):
+        client._api_json("repos/x/y/pulls/1", fields={"state": "open"})
+
+
+def test_default_method_is_forced_get(monkeypatch):
+    client = GitHubPRClient()
+    captured: list[list[str]] = []
+    class Completed:
+        returncode = 0
+        stdout = '{"ok": true}'
+    monkeypatch.setattr(
+        "software_factory.git.github_pr.subprocess.run",
+        lambda cmd, **kw: (captured.append(list(cmd)), Completed())[1],
+    )
+    result = client._api_json("repos/x/y/pulls/1")
+    assert result == {"ok": True}
+    assert captured and captured[0][1:4] == ["api", "--method", "GET"]
+
+
 def test_verify_app_installation_admin_true(monkeypatch):
     client = _client(monkeypatch)
     assert client.verify_app_installation_admin(REPO, "SADOCKDOG") is True

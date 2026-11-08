@@ -45,6 +45,9 @@ def _service() -> OwnerAuthorizationService:
             status_code=503,
             detail="Trusted public-key allowlist must reside outside agent-writable repositories under ProgramData.",
         ) from exc
+    # os.access checks effective rights of this process only; it does not prove
+    # isolation of the allowlist from other users/processes. That ACL gap stays
+    # documented and must be closed with a protected principal before activation.
     if os.access(resolved_trust, os.W_OK) or os.access(resolved_trust.parent, os.W_OK):
         raise HTTPException(
             status_code=503,
@@ -107,7 +110,7 @@ def review_context(repository: str = Query(...), pr_number: int = Query(..., gt=
     if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
         raise HTTPException(status_code=422, detail="repository must use owner/repo format")
     try:
-        return GitHubPRClient(owner_authorization_check=settings.owner_auth_check_name).inspect(repository, pr_number).model()
+        return _service().github.inspect(repository, pr_number).model()
     except GitHubIntegrationError as exc:
         raise _translate(exc) from exc
 
